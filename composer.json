@@ -1,0 +1,38 @@
+{
+    "name": "cihawuk/desa-digital",
+    "description": "Profil dan Layanan Digital Desa Cihawuk (CodeIgniter 3)",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-mysqli": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "ext-zip": "*",
+        "codeigniter/framework": "3.1.13",
+        "dompdf/dompdf": "^3.0",
+        "ezyang/htmlpurifier": "^4.17",
+        "phpmailer/phpmailer": "^6.9",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "config": {
+        "platform-check": true,
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite unit,service",
+        "health": "php public/index.php tools health",
+        "check-platform": "@composer check-platform-reqs"
+    }
+}

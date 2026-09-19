@@ -1,0 +1,16 @@
+# Layanan Digital Desa Cihawuk
+User-agent: *
+Disallow: /lapor
+Disallow: /lacak
+Disallow: /warga
+Disallow: /admin
+Disallow: /masuk
+Disallow: /daftar
+Disallow: /aktivasi
+Disallow: /reset-password
+Disallow: /lupa-password
+Disallow: /berkas
+Disallow: /cari
+Allow: /
+
+Sitemap: http://cihawuk.test/sitemap.xml

@@ -1,0 +1,40 @@
+# Front controller Desa Cihawuk
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir file tersembunyi (.env, .git, .htaccess) bila ada di public.
+    RewriteRule (^|/)\. - [F,L]
+
+    # Prefix URL aplikasi: kosong untuk http://cihawuk.test/, "/cihawuk" untuk
+    # http://localhost/cihawuk/ (Alias Apache). Tanpa RewriteBase tetap.
+    RewriteCond %{REQUEST_URI}::$0 ^(/.+)/(.*)::\2$
+    RewriteRule .* - [E=CHW_BASE:%1]
+
+    # File/folder statis yang ada dilayani langsung; lainnya ke index.php.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ %{ENV:CHW_BASE}/index.php [L]
+</IfModule>
+
+# Hanya index.php yang boleh dieksekusi sebagai PHP di folder public.
+<FilesMatch "\.(php|phtml|phar|php\d|pht)$">
+    Require all denied
+</FilesMatch>
+<Files "index.php">
+    Require all granted
+</Files>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    <FilesMatch "\.(css|js|woff2|woff|svg|png|jpg|jpeg|webp|avif)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType font/woff2 .woff2
+    AddType image/avif .avif
+    AddType image/webp .webp
+</IfModule>

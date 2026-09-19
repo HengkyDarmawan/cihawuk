@@ -1,0 +1,32 @@
+{
+  "name": "cihawuk-vendor-assets",
+  "private": true,
+  "description": "Pengambilan aset frontend dari registry npm resmi. Hasil disalin ke public/assets/vendor; Node tidak dibutuhkan saat runtime.",
+  "scripts": {
+    "copy": "node copy-vendor-assets.mjs",
+    "build:three": "esbuild src/hero-scene.js --bundle --format=esm --minify --target=es2020 --legal-comments=eof --outfile=../../public/assets/site/js/hero-scene.bundle.js",
+    "build": "npm run copy && npm run build:three"
+  },
+  "dependencies": {
+    "@fontsource/manrope": "5.3.0",
+    "@fontsource/playfair-display": "5.3.0",
+    "@fortawesome/fontawesome-free": "5.15.4",
+    "@ttskch/select2-bootstrap4-theme": "1.5.2",
+    "bootstrap": "5.3.8",
+    "bootstrap4": "npm:bootstrap@4.6.2",
+    "chart.js": "4.5.1",
+    "datatables.net-bs4": "3.0.4",
+    "feather-icons": "4.29.2",
+    "jquery": "3.7.1",
+    "jquery.easing": "1.4.1",
+    "leaflet": "1.9.4",
+    "select2": "4.1.0",
+    "startbootstrap-sb-admin-2": "4.1.4",
+    "sweetalert2": "11.26.25",
+    "swiper": "14.2.0",
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

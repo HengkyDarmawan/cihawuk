@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cihawuk-dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set APP_BASE_URL=http://127.0.0.1:8765/&& C:/xampp/php-8.3.33/php.exe -S 127.0.0.1:8765 -t public scripts/dev-router.php"],
+      "port": 8765
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# Rahasia & konfigurasi lokal
+.env
+.env.*
+!.env.example
+
+# Dependensi
+/vendor/
+node_modules/
+
+# Penyimpanan runtime & data warga
+/storage/private/*
+/storage/testing/
+/storage/logs/*
+/storage/cache/*
+/storage/tmp/*
+/storage/sessions/*
+/storage/backups/
+!/storage/**/.gitkeep
+/public/media/*
+!/public/media/.gitkeep
+!/public/media/.htaccess
+
+# Dokumen sumber desa (salinan pengembangan, tidak dipublikasi)
+/reference/documents/*
+!/reference/documents/.gitkeep
+
+# Artefak sementara & backup
+*.bak
+*.sql
+*.sql.gz
+*.log
+/tests/_output/
+/.phpunit.cache/
+/.phpunit.result.cache
+Thumbs.db
+.DS_Store
+/.idea/
+/.vscode/

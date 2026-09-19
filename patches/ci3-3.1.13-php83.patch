@@ -1,0 +1,108 @@
+diff --git a/system/core/Controller.php b/system/core/Controller.php
+index aeccd60..3713ae0 100644
+--- a/system/core/Controller.php
++++ b/system/core/Controller.php
+@@ -50,6 +50,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  * @author		EllisLab Dev Team
+  * @link		https://codeigniter.com/userguide3/general/controllers.html
+  */
++#[AllowDynamicProperties]
+ class CI_Controller {
+ 
+ 	/**
+diff --git a/system/core/Input.php b/system/core/Input.php
+index eba5f67..2051e0c 100644
+--- a/system/core/Input.php
++++ b/system/core/Input.php
+@@ -906,9 +906,11 @@ class CI_Input {
+ 	 */
+ 	public function method($upper = FALSE)
+ 	{
++		// REQUEST_METHOD tidak tersedia pada CLI; hindari null ke strtolower() (PHP 8.1+)
++		$method = (string) $this->server('REQUEST_METHOD');
+ 		return ($upper)
+-			? strtoupper($this->server('REQUEST_METHOD'))
+-			: strtolower($this->server('REQUEST_METHOD'));
++			? strtoupper($method)
++			: strtolower($method);
+ 	}
+ 
+ 	// ------------------------------------------------------------------------
+diff --git a/system/core/Loader.php b/system/core/Loader.php
+index a70487e..ee37294 100644
+--- a/system/core/Loader.php
++++ b/system/core/Loader.php
+@@ -49,6 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  * @author		EllisLab Dev Team
+  * @link		https://codeigniter.com/userguide3/libraries/loader.html
+  */
++#[AllowDynamicProperties]
+ class CI_Loader {
+ 
+ 	// All these are set automatically. Don't mess with them.
+diff --git a/system/core/Model.php b/system/core/Model.php
+index b2bbbd4..5ca24e0 100644
+--- a/system/core/Model.php
++++ b/system/core/Model.php
+@@ -47,6 +47,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  * @author		EllisLab Dev Team
+  * @link		https://codeigniter.com/userguide3/libraries/config.html
+  */
++#[AllowDynamicProperties]
+ class CI_Model {
+ 
+ 	/**
+diff --git a/system/core/Router.php b/system/core/Router.php
+index ab1f44e..43900ad 100644
+--- a/system/core/Router.php
++++ b/system/core/Router.php
+@@ -51,6 +51,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  */
+ class CI_Router {
+ 
++	/**
++	 * CI_URI instance (dideklarasikan untuk PHP 8.2+)
++	 *
++	 * @var CI_URI
++	 */
++	public $uri;
++
+ 	/**
+ 	 * CI_Config class object
+ 	 *
+diff --git a/system/core/URI.php b/system/core/URI.php
+index 6a55439..763b94f 100644
+--- a/system/core/URI.php
++++ b/system/core/URI.php
+@@ -51,6 +51,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  */
+ class CI_URI {
+ 
++	/**
++	 * CI_Config instance (dideklarasikan untuk PHP 8.2+)
++	 *
++	 * @var CI_Config
++	 */
++	public $config;
++
+ 	/**
+ 	 * List of cached URI segments
+ 	 *
+diff --git a/system/database/DB_driver.php b/system/database/DB_driver.php
+index 522f1bb..d301988 100644
+--- a/system/database/DB_driver.php
++++ b/system/database/DB_driver.php
+@@ -53,6 +53,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
+  */
+ abstract class CI_DB_driver {
+ 
++	/**
++	 * Failover connections (dideklarasikan untuk PHP 8.2+)
++	 *
++	 * @var array
++	 */
++	public $failover = array();
++
+ 	/**
+ 	 * Data Source Name / Connect string
+ 	 *

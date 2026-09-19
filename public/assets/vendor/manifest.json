@@ -1,0 +1,156 @@
+{
+  "generated_at": "2026-09-15T10:34:04.310Z",
+  "source": "npm registry (registry.npmjs.org)",
+  "packages": {
+    "bootstrap": {
+      "version": "5.3.8",
+      "license": "MIT",
+      "folder": "public/assets/vendor/bootstrap5"
+    },
+    "bootstrap4": {
+      "version": "4.6.2",
+      "license": "MIT",
+      "folder": "public/assets/vendor/bootstrap4"
+    },
+    "jquery": {
+      "version": "3.7.1",
+      "license": "MIT",
+      "folder": "public/assets/vendor/jquery"
+    },
+    "jquery.easing": {
+      "version": "1.4.1",
+      "license": "BSD-3-Clause",
+      "folder": "public/assets/vendor/jquery-easing"
+    },
+    "startbootstrap-sb-admin-2": {
+      "version": "4.1.4",
+      "license": "MIT",
+      "folder": "public/assets/vendor/sb-admin-2"
+    },
+    "@fortawesome/fontawesome-free": {
+      "version": "5.15.4",
+      "license": "(CC-BY-4.0 AND OFL-1.1 AND MIT)",
+      "folder": "public/assets/vendor/fontawesome"
+    },
+    "chart.js": {
+      "version": "4.5.1",
+      "license": "MIT",
+      "folder": "public/assets/vendor/chartjs"
+    },
+    "datatables.net": {
+      "version": "3.0.4",
+      "license": "MIT",
+      "folder": "public/assets/vendor/datatables"
+    },
+    "datatables.net-bs4": {
+      "version": "3.0.4",
+      "license": "MIT",
+      "folder": "public/assets/vendor/datatables"
+    },
+    "select2": {
+      "version": "4.1.0",
+      "license": "MIT",
+      "folder": "public/assets/vendor/select2"
+    },
+    "@ttskch/select2-bootstrap4-theme": {
+      "version": "1.5.2",
+      "license": "MIT",
+      "folder": "public/assets/vendor/select2"
+    },
+    "sweetalert2": {
+      "version": "11.26.25",
+      "license": "MIT",
+      "folder": "public/assets/vendor/sweetalert2"
+    },
+    "swiper": {
+      "version": "14.2.0",
+      "license": "MIT",
+      "folder": "public/assets/vendor/swiper"
+    },
+    "leaflet": {
+      "version": "1.9.4",
+      "license": "BSD-2-Clause",
+      "folder": "public/assets/vendor/leaflet"
+    },
+    "feather-icons": {
+      "version": "4.29.2",
+      "license": "MIT",
+      "folder": "public/assets/vendor/feather-icons"
+    },
+    "@fontsource/manrope": {
+      "version": "5.3.0",
+      "license": "OFL-1.1",
+      "folder": "public/assets/vendor/fonts/manrope"
+    },
+    "@fontsource/playfair-display": {
+      "version": "5.3.0",
+      "license": "OFL-1.1",
+      "folder": "public/assets/vendor/fonts/playfair-display"
+    }
+  },
+  "sha256": {
+    "bootstrap4/LICENSE": "53d2513c8df48a817d70537cc906b8e9c7bf2513328ff66847894773e615b37e",
+    "bootstrap4/js/bootstrap.bundle.min.js": "19126b874a32753d42c12dfa6c17892bfd93820a5a5100ba1b34da4d07599b49",
+    "bootstrap5/LICENSE": "4620c84ad5ce8602ff65640ed6b7c8b78ebb9e036584f0ebc1ccc88206a4bb51",
+    "bootstrap5/css/bootstrap.min.css": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede",
+    "bootstrap5/js/bootstrap.bundle.min.js": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7",
+    "chartjs/LICENSE.md": "41a84aa2caba645f966a18d9c2056b73e6d3a81d80bc0046bc0011a2634d4cce",
+    "chartjs/chart.umd.min.js": "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a",
+    "datatables/License.txt": "62b5fdd54371b4f6bd07a60dbc78b38814f49a8028213f540dc2733cad605382",
+    "datatables/css/dataTables.bootstrap4.min.css": "1e5ca1f375b1dbe1e41c686411b2cd7c95a5b8a6b7ae4ea178dbab61d131da74",
+    "datatables/js/dataTables.bootstrap4.min.js": "641786154044b109a43730007d2f18ca44060a29491904aae4a9b3401b8a8cac",
+    "datatables/js/dataTables.min.js": "c41fb6dec68aafb1b8010cc56ca068291a7f4d0280423bde40a7d5f827f2867e",
+    "feather-icons/LICENSE": "308028e93fcf84972523cdf6e616f73168546b4953895f516d01287f16fe7bee",
+    "feather-icons/feather-sprite.svg": "51cf5647cb1987f769b616558f2620fd9423d72058490231b391bf6aa3744b55",
+    "fontawesome/LICENSE.txt": "e779748dfe75e84f974df3c7bc07f842011a100159158b0f1f49b2f2a5a515cb",
+    "fontawesome/css/all.min.css": "99464ceb71bc9bbdcc72275faefe44f98eb5cbb6b5d8ee665b87b35376f1a96e",
+    "fontawesome/webfonts/fa-brands-400.woff": "f9217f66874b0c01cd8c10b6a295dbc4f609acb6f5adc41c37da46641b57eb02",
+    "fontawesome/webfonts/fa-brands-400.woff2": "8ea8791754915a898a3100e63e32978a6d1763be6df8e73a39d3a90d691cdeef",
+    "fontawesome/webfonts/fa-regular-400.woff": "cb9e9e693192413cde2b1f21c1dc1d44b6fe7b27cc2b458e8b359d18f9ff8f4e",
+    "fontawesome/webfonts/fa-regular-400.woff2": "e42a88444448ac3d60549cc7c1ff2c8a9cac721034c073d80a14a44e79730cca",
+    "fontawesome/webfonts/fa-solid-900.woff": "3f6d3488cf65374f6f676c315340b0ac2be832bd55240c809448e36ef9b96326",
+    "fontawesome/webfonts/fa-solid-900.woff2": "9834b82ad26e2a37583d22676a12dd2eb0fe7c80356a2114d0db1aa8b3899537",
+    "fonts/manrope/LICENSE": "d826ab6583b12c26807d8716a545bdbbb672df04f48608a364ba9efdbe501c30",
+    "fonts/manrope/manrope-latin-400.woff2": "849290ef12a2eeb9af5c11924120d11aa4ae8b435ed3347d7fc8bc240c293ca3",
+    "fonts/manrope/manrope-latin-500.woff2": "19874318747181a650eda439c37955220b849d9c4797c9e0718ee67d4bf929bc",
+    "fonts/manrope/manrope-latin-600.woff2": "f7ac6258da20ab7541939b59851155753d1d24f1b30cbcb949077a3faa3d1593",
+    "fonts/manrope/manrope-latin-700.woff2": "d2a12c85a831e4b5db341767d0347fa3d1361d22a1fcb3e361a16b6c90080f71",
+    "fonts/manrope/manrope-latin-800.woff2": "74c161dbcbce7c3590803cc72dc1f63313c360e13367aba5075a7b7b3818ea49",
+    "fonts/manrope/manrope-latin-ext-400.woff2": "72c5354a6f814f3bd38dc3d8caee774f7557b301e69d8428e677b7b73d58d9ee",
+    "fonts/manrope/manrope-latin-ext-500.woff2": "40787d0c2ff6301cb60b504b6c7a2518c5e0104e6f0f5329c14536d6ed1b884d",
+    "fonts/manrope/manrope-latin-ext-600.woff2": "ff679412842fc3b5ce2dfad626db5261a4e663dcfd1bf1209bdfc61c2b2f37e6",
+    "fonts/manrope/manrope-latin-ext-700.woff2": "dc7c46d7eb269cc90650d7f70cf49aafa39a98444e6882cc84096acbc156bfcd",
+    "fonts/manrope/manrope-latin-ext-800.woff2": "262536c3018a0830a4d3d1b1a8096ac0d53dbd059f6271cca121272ba9d4f948",
+    "fonts/playfair-display/LICENSE": "c052aafd2a71e90bcee6e69f475029d430a10d548c08ffcae350171f0e9668b1",
+    "fonts/playfair-display/playfair-display-latin-600.woff2": "5d2286941a6b02a29387efa94809a064f8917598eafa67b938261cf13bb887cd",
+    "fonts/playfair-display/playfair-display-latin-700.woff2": "28453852ea165c47b5a941be00e418402e1407002ed87507f062a1e316328fe6",
+    "fonts/playfair-display/playfair-display-latin-ext-600.woff2": "cf968562375eceed83b66f2b5445aa4ecdc4d5300de94930da06433877a975a1",
+    "fonts/playfair-display/playfair-display-latin-ext-700.woff2": "edb9f5d879b30c617698bcc288692c339d5a0a2464a5476f00025195e5cad166",
+    "jquery-easing/LICENSE": "e8675bf8fd39f4b1ad13e0c267e2453e1a223c68d6e217634bc59dcb89a97412",
+    "jquery-easing/jquery.easing.min.js": "1f7723b6b9bfced0deba108df48e3287888dd986f1ff2d5133bacc9807ac0349",
+    "jquery/LICENSE.txt": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d",
+    "jquery/jquery.min.js": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+    "leaflet/LICENSE": "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb",
+    "leaflet/images/layers-2x.png": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+    "leaflet/images/layers.png": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+    "leaflet/images/marker-icon-2x.png": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+    "leaflet/images/marker-icon.png": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+    "leaflet/images/marker-shadow.png": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+    "leaflet/leaflet.css": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6",
+    "leaflet/leaflet.js": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+    "sb-admin-2/LICENSE": "a6fd5dc87bd6cec30df8e232625c7202474476bc0791325ac3d21b50afd3306f",
+    "sb-admin-2/css/sb-admin-2.min.css": "04f0fccb385b5c711654127df985f99d08ff25e8a47bfd72091888fdeb1451e8",
+    "sb-admin-2/js/sb-admin-2.min.js": "c77d301366d60c25574fc5d87bb04acf8eea25693733a24da7b3e9c2a8edc6f0",
+    "select2/LICENSE.md": "4ee0cbc51370afde358652a0f977972053729ed578b6a42f5e2a037d114f0b39",
+    "select2/css/select2-bootstrap4.min.css": "87bbf2e3604fe0cb4b134b9d23206e384a01f27248da22da88e24480ee58929d",
+    "select2/css/select2.min.css": "5d5e14d587308b5d1ad79f51e9aea2f8f469b0a02b335f559f5a4bb756b81737",
+    "select2/js/i18n/id.js": "a2b18b083e2a88b41032347852be2846436b755535a6b017ed462956c1fad1d1",
+    "select2/js/select2.min.js": "15692c266649fbc8acb4ebfb345e7e9499486d9551148241a235c9d62eea2f55",
+    "sweetalert2/LICENSE": "879aa33feba35b3428c6485fc17cddd8c820d7a8780281aa945e60582a28c4b4",
+    "sweetalert2/sweetalert2.min.css": "a1173e56fd474be04ddbefa81bd75cc465627ef2f5db261792e7d25fb7871743",
+    "sweetalert2/sweetalert2.min.js": "520341374aa1ee4387d6564e46c0fb0485addc98431ee246cd1be6368fedb1b0",
+    "swiper/LICENSE": "99f08e3e3ee0799fe1488fcbcb41dc933b14873e9556693209daf9e1007601d6",
+    "swiper/swiper-bundle.min.css": "d3bd7ac4a5cb1eb7c19587255bbba195c3ea726d4aa1e76d3e573f595249fcfd",
+    "swiper/swiper-bundle.min.js": "d4e1d888723c80623ed161f220af4734a5735a5dd30abe0b9860fa5b53e6be77"
+  }
+}

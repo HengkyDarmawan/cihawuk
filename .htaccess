@@ -1,0 +1,3 @@
+# Lapisan pertahanan tambahan: root proyek tidak boleh dilayani web.
+# Akses aplikasi hanya melalui virtual host yang DocumentRoot-nya folder public/.
+Require all denied
