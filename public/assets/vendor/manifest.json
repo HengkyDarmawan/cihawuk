@@ -62,6 +62,11 @@
       "license": "MIT",
       "folder": "public/assets/vendor/sweetalert2"
     },
+    "qrcode-generator": {
+      "version": "1.4.4",
+      "license": "MIT",
+      "folder": "public/assets/vendor/qrcode-generator"
+    },
     "swiper": {
       "version": "14.2.0",
       "license": "MIT",

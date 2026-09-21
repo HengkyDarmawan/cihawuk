@@ -17,7 +17,7 @@ class Pengguna extends Admin_Controller {
 
 	public function index()
 	{
-		$this->require_any(array('users.manage', 'users.create_resident', 'residents.verify', 'users.assign_roles'));
+		$this->require_any(array('users.manage', 'users.create_resident', 'residents.verify', 'users.assign_roles', 'roles.manage'));
 		$status = (string) $this->input->get('status');
 		$role = (string) $this->input->get('role');
 		$keyword = mb_substr(trim((string) $this->input->get('q')), 0, 60);
@@ -47,12 +47,29 @@ class Pengguna extends Admin_Controller {
 		foreach ($users as $user)
 		{
 			$user->roles = $this->user_model->roles($user->id);
+			$user->role_codes = array_map(function ($r) { return $r->code; }, $user->roles);
+		}
+
+		// Tab per role + ringkasan akses role yang sedang dibuka.
+		$this->load->library('RbacService', NULL, 'rbac');
+		$roles = $this->rbac->roles();
+		$active_role = NULL;
+		foreach ($roles as $r)
+		{
+			if ($r->code === $role)
+			{
+				$active_role = $r;
+				$active_role->modules = $this->rbac->module_labels($this->rbac->role_permission_codes($r));
+			}
 		}
 
 		$this->render('admin/pengguna_index', array(
-			'page_title' => 'Pengguna',
+			'page_title' => 'Pengguna & Akses',
 			'users' => $users,
-			'roles' => $this->db->order_by('name')->get('roles')->result(),
+			'roles' => $roles,
+			'active_role' => $active_role,
+			'all_count' => (int) $this->db->count_all('users'),
+			'current_uri' => 'admin/pengguna'.($role !== '' ? '?role='.rawurlencode($role) : ''),
 			'statuses' => app_config('account_statuses'),
 			'filters' => array('status' => $status, 'role' => $role, 'q' => $keyword),
 			'page' => $page,
@@ -121,10 +138,18 @@ class Pengguna extends Admin_Controller {
 	protected function detail_data($user, array $extra = array())
 	{
 		$assignable_roles = array();
-		foreach ($this->db->order_by('name')->get('roles')->result() as $role)
+		$role_descriptions = array();
+		$rank = array('super_admin' => 0, 'admin_desa' => 1, 'petugas' => 2, 'resident' => 3);
+		$all_roles = $this->db->get('roles')->result();
+		usort($all_roles, function ($a, $b) use ($rank) {
+			return array(($rank[$a->code] ?? 9), $a->name) <=> array(($rank[$b->code] ?? 9), $b->name);
+		});
+		foreach ($all_roles as $role)
 		{
 			$assignable_roles[$role->code] = $role->name;
+			$role_descriptions[$role->code] = (string) $role->description;
 		}
+		$this->load->library('RbacService', NULL, 'rbac');
 		$units = array();
 		foreach ($this->db->where('active', 1)->order_by('name')->get('organizational_units')->result() as $unit)
 		{
@@ -136,6 +161,8 @@ class Pengguna extends Admin_Controller {
 			'profile' => $this->user_model->resident_profile($user->id),
 			'user_roles' => $this->user_model->roles($user->id),
 			'assignable_roles' => $assignable_roles,
+			'role_descriptions' => $role_descriptions,
+			'access_modules' => $this->rbac->module_labels($this->authz->permissions($user->id)),
 			'scopes' => $this->db->select('s.*, o.name AS unit_name')->from('user_unit_scopes s')
 				->join('organizational_units o', 'o.id = s.unit_id')->where('s.user_id', (int) $user->id)->get()->result(),
 			'units' => $units,
@@ -178,6 +205,18 @@ class Pengguna extends Admin_Controller {
 	{
 		$this->flash($type, $message);
 		redirect(site_url('admin/pengguna/'.$user->public_id), 'location', 303);
+	}
+
+	/** Kembali ke halaman asal (daftar pengguna atau halaman role) bila diminta dan aman. */
+	protected function return_path($user)
+	{
+		// Hanya URI internal berbentuk "admin/pengguna?role=x" atau "admin/rbac/role/kode".
+		$uri = (string) $this->input->post('kembali');
+		if (preg_match('#^admin/(pengguna|rbac/role/[a-z0-9_]+)(\?[A-Za-z0-9_=&%.-]*)?$#', $uri))
+		{
+			return site_url($uri);
+		}
+		return site_url('admin/pengguna/'.$user->public_id);
 	}
 
 	protected function do_activate($user)
@@ -238,6 +277,23 @@ class Pengguna extends Admin_Controller {
 		$this->require_reauth();
 		$role = (string) $this->input->post('role_code');
 		$operation = (string) $this->input->post('operation');
+		if ($operation === '' OR $operation === 'set')
+		{
+			// Satu pengguna satu role: role terpilih menggantikan role sebelumnya.
+			$this->load->library('RbacService', NULL, 'rbac');
+			$changed = $this->rbac->set_user_role($user, $role, $this->user);
+			$role_row = $this->rbac->role($role);
+			if ($changed)
+			{
+				$this->auth->logout_all($user->id, 'role_change');
+				$this->authz->flush($user->id);
+			}
+			$this->flash('success', $changed
+				? 'Role '.$user->display_name.' sekarang '.$role_row->name.'. Sesi pengguna tersebut dikeluarkan.'
+				: $user->display_name.' sudah memegang role '.$role_row->name.'.');
+			redirect($this->return_path($user), 'location', 303);
+			return;
+		}
 		$role_row = $this->db->get_where('roles', array('code' => $role))->row();
 		if ( ! $role_row OR ! in_array($operation, array('add', 'remove'), TRUE))
 		{

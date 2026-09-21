@@ -18,10 +18,19 @@ class Aset extends Admin_Controller {
 		$this->layout_data['nav_active'] = 'aset';
 	}
 
+	/** CSS/JS tambahan halaman aset: DataTables lokal dan penggambar QR. */
+	protected function asset_assets(array $data)
+	{
+		$data['extra_css'] = array('vendor/datatables/css/dataTables.bootstrap4.min.css');
+		$data['extra_js'] = array('vendor/datatables/js/dataTables.min.js', 'vendor/datatables/js/dataTables.bootstrap4.min.js',
+			'vendor/sweetalert2/sweetalert2.min.js', 'vendor/qrcode-generator/qrcode.js', 'admin/js/asset-qr.js');
+		return $data;
+	}
+
 	public function index()
 	{
 		$this->require_permission('assets.view');
-		$this->render('admin/aset_index', array(
+		$this->render('admin/aset_index', $this->asset_assets(array(
 			'page_title' => 'Aset dan QR',
 			'registers' => $this->assets->registers(array(
 				'category_id' => (int) $this->input->get('kategori'),
@@ -35,24 +44,30 @@ class Aset extends Admin_Controller {
 			'can_create' => $this->authz->can('assets.create'),
 			'can_financial' => $this->authz->can('assets.view_financial'),
 			'filters' => array('kategori' => (int) $this->input->get('kategori'), 'q' => (string) $this->input->get('q')),
-		), 'dashboard');
+			'can_labels' => $this->authz->can('assets.print_labels'),
+		)), 'dashboard');
 	}
 
 	public function register($public_id)
 	{
 		$this->require_permission('assets.view');
 		$register = $this->require_register($public_id);
-		$this->render('admin/aset_register', array(
+		$units = $this->assets->units($register);
+		$this->render('admin/aset_register', $this->asset_assets(array(
 			'page_title' => 'Register: '.$register->name,
 			'register' => $register,
-			'units' => $this->assets->units($register),
+			'units' => $units,
+			'qr_status' => $this->assets->qr_status_map(array_map(function ($u) { return (int) $u->id; }, $units)),
 			'categories' => $this->assets->categories(),
 			'locations' => $this->assets->locations(),
 			'ownership' => AssetService::OWNERSHIP,
+			'lifecycle' => AssetService::LIFECYCLE,
+			'conditions' => AssetService::CONDITIONS,
 			'can_edit' => $this->authz->can('assets.edit'),
 			'can_create' => $this->authz->can('assets.create'),
 			'can_financial' => $this->authz->can('assets.view_financial'),
-		), 'dashboard');
+			'can_labels' => $this->authz->can('assets.print_labels'),
+		)), 'dashboard');
 	}
 
 	public function unit($public_id)
@@ -60,7 +75,8 @@ class Aset extends Admin_Controller {
 		$this->require_permission('assets.view');
 		$unit = $this->require_unit($public_id);
 		$register = $this->db->get_where('asset_registers', array('id' => (int) $unit->register_id))->row();
-		$this->render('admin/aset_unit', array(
+		$token = $this->assets->active_token($unit);
+		$this->render('admin/aset_unit', $this->asset_assets(array(
 			'page_title' => 'Unit: '.$unit->asset_tag,
 			'unit' => $unit,
 			'register' => $register,
@@ -71,14 +87,15 @@ class Aset extends Admin_Controller {
 			'movements' => $this->assets->movements($unit),
 			'loans' => $this->assets->loans($unit),
 			'maintenances' => $this->assets->maintenances($unit),
-			'token' => $this->assets->active_token($unit),
-			'issued_token' => $this->session->flashdata('issued_token'),
+			'token' => $token,
+			'qr_url' => $token ? $this->assets->qr_url($unit, $token) : NULL,
+			'location' => $unit->location_id ? $this->db->get_where('asset_locations', array('id' => (int) $unit->location_id))->row() : NULL,
 			'can_status' => $this->authz->can('assets.change_status'),
 			'can_move' => $this->authz->can('assets.move'),
 			'can_maintain' => $this->authz->can('assets.maintain'),
 			'can_labels' => $this->authz->can('assets.print_labels'),
 			'can_financial' => $this->authz->can('assets.view_financial'),
-		), 'dashboard');
+		)), 'dashboard');
 	}
 
 	public function save_category()
@@ -167,15 +184,14 @@ class Aset extends Admin_Controller {
 
 		if ($action === 'terbitkan')
 		{
-			$token = $this->assets->issue_token($unit, (int) $this->user->id, $this->post_string('reason', 200));
-			// Token hanya ditampilkan sekali; tidak disimpan dan tidak masuk log.
-			$this->session->set_flashdata('issued_token', $token);
-			$message = 'Token QR baru diterbitkan. Salin sekarang karena tidak dapat ditampilkan lagi.';
+			$had_token = $this->assets->active_token($unit) !== NULL;
+			$this->assets->issue_token($unit, (int) $this->user->id, $this->post_string('reason', 200) ?: 'Penerbitan QR dari halaman unit');
+			$message = $had_token ? 'QR baru dibuat. Label lama tidak berlaku lagi; cetak label yang baru.' : 'QR dibuat dan siap dicetak.';
 		}
 		elseif ($action === 'cabut')
 		{
 			$this->assets->revoke_token($unit, $this->post_string('reason', 200), (int) $this->user->id);
-			$message = 'Token QR dicabut. Label lama tidak lagi berlaku.';
+			$message = 'QR dicabut. Label lama tidak lagi berlaku.';
 		}
 		else
 		{
@@ -264,15 +280,45 @@ class Aset extends Admin_Controller {
 		$this->back_unit($public_id);
 	}
 
+	/**
+	 * Siapkan label QR untuk unit terpilih (`unit_ids[]`) atau seluruh unit satu register
+	 * (`register`). Unit yang belum punya QR otomatis dibuatkan, lalu diarahkan ke halaman cetak.
+	 */
 	public function create_labels()
 	{
 		$this->require_method('post');
 		$this->require_permission('assets.print_labels');
 		$units = $this->input->post('unit_ids');
-		$batch = $this->assets->create_label_batch(is_array($units) ? $units : array(),
-			$this->input->post(NULL, FALSE) ?: array(), (int) $this->user->id);
-		$this->flash('success', 'Batch label disiapkan berisi '.(int) $batch->item_count.' unit.');
-		redirect(site_url('admin/aset'), 'location', 303);
+		$units = is_array($units) ? array_values(array_filter($units, 'is_string')) : array();
+		$register_id = $this->post_string('register', 40);
+		if ($register_id !== '')
+		{
+			foreach ($this->assets->units($this->require_register($register_id)) as $unit)
+			{
+				$units[] = $unit->public_id;
+			}
+		}
+		$batch = $this->assets->prepare_labels($units, (int) $this->user->id);
+		redirect(site_url('admin/aset/label/'.rawurlencode($batch->public_id)), 'location', 303);
+	}
+
+	/** Halaman cetak label (A4, 3 x 8) tanpa sidebar. */
+	public function print_labels($public_id)
+	{
+		$this->require_permission('assets.print_labels');
+		$batch = $this->assets->label_batch($public_id);
+		if ( ! $batch)
+		{
+			throw new DomainRuleException('Batch label tidak ditemukan.', 404);
+		}
+		if ($batch->status === 'ready')
+		{
+			$this->assets->mark_batch_printed($batch, (int) $this->user->id);
+		}
+		$this->load->view('admin/aset_label_print', array(
+			'batch' => $batch,
+			'items' => $this->assets->label_items($batch),
+		));
 	}
 
 	protected function require_register($public_id)

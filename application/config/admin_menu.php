@@ -6,7 +6,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Setiap item terikat ke route yang sudah diperiksa izinnya di server, jadi daftar ini
  * tetap di kode. Label, grup, urutan, status aktif, dan visibilitas per role dapat diubah
- * dari Admin › Role & Izin › Menu (tabel `admin_menu_overrides` dan `role_menu_hidden`).
+ * dari Pengguna & Akses › Pengaturan lanjutan › Menu dashboard (tabel `admin_menu_overrides` dan `role_menu_hidden`).
  *
  * Kolom item:
  * - key: sama dengan `nav_active` controller (dipakai untuk penanda aktif dan override)
@@ -51,8 +51,7 @@ $config['admin_menu'] = array(
 		array('key' => 'gudang', 'url' => 'admin/gudang', 'icon' => 'fa-warehouse', 'label' => 'Gudang Persediaan', 'module' => 'warehouse', 'all' => array('warehouse.view')),
 	)),
 	array('heading' => 'Pengaturan', 'items' => array(
-		array('key' => 'pengguna', 'url' => 'admin/pengguna', 'icon' => 'fa-users', 'label' => 'Pengguna', 'any' => array('users.manage', 'users.create_resident', 'residents.verify', 'users.assign_roles')),
-		array('key' => 'rbac', 'url' => 'admin/rbac', 'icon' => 'fa-user-shield', 'label' => 'Role, Izin, dan Menu', 'all' => array('roles.manage')),
+		array('key' => 'pengguna', 'url' => 'admin/pengguna', 'icon' => 'fa-users', 'label' => 'Pengguna & Akses', 'any' => array('users.manage', 'users.create_resident', 'residents.verify', 'users.assign_roles', 'roles.manage')),
 		array('key' => 'pengaturan', 'url' => 'admin/pengaturan', 'icon' => 'fa-sliders-h', 'label' => 'Pengaturan Aplikasi', 'all' => array('settings.manage')),
 		array('key' => 'modul', 'url' => 'admin/pengaturan/modul', 'icon' => 'fa-toggle-on', 'label' => 'Modul dan Feature Toggle', 'all' => array('settings.feature.manage')),
 		array('key' => 'audit', 'url' => 'admin/audit', 'icon' => 'fa-clipboard-list', 'label' => 'Log Audit', 'all' => array('audit.view')),
@@ -63,4 +62,4 @@ $config['admin_menu'] = array(
  * Item yang tidak boleh disembunyikan atau dimatikan dari dashboard, supaya pengelola
  * RBAC tidak mengunci dirinya sendiri keluar dari halaman pengaturannya.
  */
-$config['admin_menu_locked'] = array('dashboard', 'rbac');
+$config['admin_menu_locked'] = array('dashboard', 'pengguna');

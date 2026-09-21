@@ -1,12 +1,18 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
-/** Tab navigasi halaman Role, Izin, dan Menu. */
-$tabs = array('role' => array('admin/rbac', 'Role'), 'izin' => array('admin/rbac/izin', 'Izin'), 'menu' => array('admin/rbac/menu', 'Menu dashboard'));
+/** Tautan pengaturan akses lanjutan. Pekerjaan sehari-hari cukup dari Pengguna & Akses. */
+$tabs = array(
+	'role' => array('admin/rbac?semua=1', 'Semua role'),
+	'baru' => array('admin/rbac/role/baru', 'Tambah role'),
+	'izin' => array('admin/rbac/izin', 'Daftar izin'),
+	'menu' => array('admin/rbac/menu', 'Menu dashboard'),
+);
 ?>
-<ul class="nav nav-tabs mb-4">
-	<?php foreach ($tabs as $key => $t): ?>
-	<li class="nav-item">
-		<a class="nav-link<?= $tab === $key ? ' active' : '' ?>" href="<?= site_url($t[0]) ?>"<?= $tab === $key ? ' aria-current="page"' : '' ?>><?= e($t[1]) ?></a>
-	</li>
-	<?php endforeach; ?>
-</ul>
-<p class="small text-muted">Setiap perubahan meminta konfirmasi ulang password dan tercatat di log audit. Izin diperiksa ulang pada setiap permintaan, jadi perubahan langsung berlaku.</p>
+<div class="card border-0 bg-light mb-4 mt-4">
+	<div class="card-body py-2 d-flex flex-wrap align-items-center" style="gap:.5rem">
+		<span class="small font-weight-bold text-muted mr-2"><i class="fas fa-sliders-h fa-sm mr-1" aria-hidden="true"></i> Pengaturan lanjutan:</span>
+		<a class="btn btn-sm <?= $tab === 'pengguna' ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= site_url('admin/pengguna') ?>">Pengguna &amp; Akses</a>
+		<?php foreach ($tabs as $key => $t): ?>
+			<a class="btn btn-sm <?= $tab === $key ? 'btn-primary' : 'btn-outline-secondary' ?>" href="<?= site_url($t[0]) ?>"<?= $tab === $key ? ' aria-current="page"' : '' ?>><?= e($t[1]) ?></a>
+		<?php endforeach; ?>
+	</div>
+</div>

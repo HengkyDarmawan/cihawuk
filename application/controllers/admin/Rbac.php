@@ -13,14 +13,21 @@ class Rbac extends Admin_Controller {
 	{
 		parent::__construct();
 		$this->load->library('RbacService', NULL, 'rbac');
-		$this->layout_data['nav_active'] = 'rbac';
+		$this->load->library('AuthService', NULL, 'auth');
+		$this->layout_data['nav_active'] = 'pengguna';
 	}
 
+	/** Role dikelola dari halaman Pengguna & Akses (tab per role). */
 	public function index()
 	{
 		$this->require_permission('roles.manage');
+		if ($this->input->get('semua') === NULL)
+		{
+			redirect(site_url('admin/pengguna'), 'location', 303);
+			return;
+		}
 		$this->render('admin/rbac_roles', array(
-			'page_title' => 'Role, Izin, dan Menu',
+			'page_title' => 'Semua role',
 			'tab' => 'role',
 			'roles' => $this->rbac->roles(),
 		), 'dashboard');
@@ -33,7 +40,7 @@ class Rbac extends Admin_Controller {
 			'page_title' => 'Tambah role',
 			'tab' => 'role',
 			'role' => NULL,
-			'groups' => $this->rbac->grouped_permissions(),
+			'groups' => $this->rbac->module_permissions(),
 			'held' => array(),
 		), 'dashboard');
 	}
@@ -53,14 +60,59 @@ class Rbac extends Admin_Controller {
 	{
 		$this->require_permission('roles.manage');
 		$role = $this->require_role($code);
+		$members = $this->rbac->role_members($role);
+		foreach ($members as $member)
+		{
+			$member->role_codes = $this->user_model->role_codes($member->id);
+		}
+		$role_options = array();
+		foreach ($this->rbac->roles() as $r)
+		{
+			$role_options[$r->code] = $r->name;
+		}
+		$candidates = array();
+		foreach ($this->db->select('u.public_id, u.display_name, u.username')->from('users u')
+			->where('NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role_id = '.(int) $role->id.')', NULL, FALSE)
+			->where('u.id !=', (int) $this->user->id)
+			->order_by('u.display_name')->limit(500)->get()->result() as $candidate)
+		{
+			$candidates[$candidate->public_id] = $candidate->display_name.' ('.$candidate->username.')';
+		}
 		$this->render('admin/rbac_role_form', array(
 			'page_title' => 'Role: '.$role->name,
 			'tab' => 'role',
 			'role' => $role,
-			'groups' => $this->rbac->grouped_permissions(),
+			'groups' => $this->rbac->module_permissions(),
 			'held' => $this->rbac->role_permission_ids($role),
 			'user_count' => (int) $this->db->where('role_id', (int) $role->id)->count_all_results('user_roles'),
+			'members' => $members,
+			'role_options' => $role_options,
+			'candidates' => $candidates,
+			'modules' => $this->rbac->module_labels($this->rbac->role_permission_codes($role)),
+			'active_tab' => $this->input->get('tab') === 'anggota' ? 'anggota' : 'akses',
+			'extra_js' => array('vendor/sweetalert2/sweetalert2.min.js'),
 		), 'dashboard');
+	}
+
+	/** Tambahkan pengguna ke role ini (role lain pengguna tersebut diganti). */
+	public function member_add($code)
+	{
+		$this->require_method('post');
+		$this->require_permission('users.assign_roles');
+		$this->require_reauth();
+		$role = $this->require_role($code);
+		$member = $this->user_model->find_by_public_id((string) $this->input->post('user_public_id'));
+		if ( ! $member)
+		{
+			throw new DomainRuleException('Pilih pengguna yang akan ditambahkan.', 422, array('user_public_id' => 'Wajib dipilih.'));
+		}
+		if ($this->rbac->set_user_role($member, $role->code, $this->user))
+		{
+			$this->auth->logout_all($member->id, 'role_change');
+			$this->authz->flush($member->id);
+		}
+		$this->flash('success', $member->display_name.' sekarang memegang role '.$role->name.'.');
+		redirect(site_url('admin/rbac/role/'.rawurlencode($role->code).'?tab=anggota'), 'location', 303);
 	}
 
 	public function role_update($code)
@@ -70,6 +122,13 @@ class Rbac extends Admin_Controller {
 		$this->require_reauth();
 		$role = $this->require_role($code);
 		$role = $this->rbac->save_role($this->input->post(NULL, FALSE) ?: array(), (int) $this->user->id, $role);
+		if ($role->code === 'super_admin')
+		{
+			// Super Admin selalu memegang semua izin; tidak ada daftar izin yang disimpan.
+			$this->flash('success', 'Data role disimpan. Super Admin tetap memegang semua akses.');
+			redirect(site_url('admin/rbac/role/super_admin'), 'location', 303);
+			return;
+		}
 		$diff = $this->rbac->set_role_permissions($role, (array) $this->input->post('permissions'), (int) $this->user->id);
 		$this->flash('success', 'Role disimpan: '.count($diff['added']).' izin ditambah, '.count($diff['removed']).' dicabut.');
 		redirect(site_url('admin/rbac/role/'.rawurlencode($role->code)), 'location', 303);
@@ -83,7 +142,7 @@ class Rbac extends Admin_Controller {
 		$role = $this->require_role($code);
 		$this->rbac->delete_role($role);
 		$this->flash('success', 'Role "'.$role->name.'" dihapus.');
-		redirect(site_url('admin/rbac'), 'location', 303);
+		redirect(site_url('admin/pengguna'), 'location', 303);
 	}
 
 	public function permissions()

@@ -5,7 +5,8 @@
  */
 ?>
 <section class="page-body">
-	<div class="container-site" style="max-width: 46rem">
+	<div class="container-site">
+		<div class="row justify-content-center"><div class="col-lg-8">
 		<?php if ($status === 'unknown'): ?>
 			<div class="empty-state">
 				<?= icon('alert-triangle') ?>
@@ -21,8 +22,12 @@
 		<?php else: ?>
 			<article class="card-soft card-pad">
 				<p class="eyebrow"><?= e($asset['category_name']) ?></p>
-				<h1 class="h3"><?= e($asset['name']) ?></h1>
-				<p class="mb-3"><code><?= e($asset['asset_tag']) ?></code></p>
+				<h1 class="h3 mb-2"><?= e($asset['name']) ?></h1>
+				<p class="mb-3 d-flex flex-wrap align-items-center gap-2">
+					<code class="fs-6"><?= e($asset['asset_tag']) ?></code>
+					<span class="badge rounded-pill <?= in_array($asset['lifecycle_status'], array('active'), TRUE) ? 'text-bg-success' : ($asset['lifecycle_status'] === 'lost' ? 'text-bg-danger' : 'text-bg-secondary') ?>"><?= e($asset['lifecycle_label']) ?></span>
+					<span class="badge rounded-pill text-bg-light border"><?= e($asset['condition_label']) ?></span>
+				</p>
 
 				<?php if ($media): ?><figure class="mb-3"><?= media_img($media, 'Foto aset belum tersedia', TRUE) ?></figure><?php endif; ?>
 
@@ -38,7 +43,7 @@
 					<div class="alert alert-warning" role="status">Barang ini tercatat hilang. Bila Anda menemukannya, mohon laporkan.</div>
 				<?php endif; ?>
 
-				<table class="table table-sm">
+				<table class="table table-sm align-middle">
 					<caption class="visually-hidden">Identitas aset</caption>
 					<tbody>
 						<?php if ($asset['brand'] OR $asset['model']): ?>
@@ -57,7 +62,7 @@
 				</table>
 
 				<?php if ($asset['verified']): ?>
-					<p><span class="badge badge-success">Data terverifikasi</span>
+					<p><span class="badge rounded-pill text-bg-success">Data terverifikasi</span>
 						<span class="small text-muted">audit terakhir <?= e(format_wib($asset['verified_at'], 'date')) ?></span></p>
 				<?php else: ?>
 					<p class="small text-muted">Belum ada hasil audit fisik yang diverifikasi untuk barang ini.</p>
@@ -77,5 +82,6 @@
 				</p>
 			</article>
 		<?php endif; ?>
+		</div></div>
 	</div>
 </section>

@@ -44,9 +44,23 @@ class AuthorizationService {
 		}
 		if ( ! isset($this->perm_cache[$user_id]))
 		{
-			$this->perm_cache[$user_id] = $this->CI->user_model->permission_codes($user_id);
+			// Super Admin memegang seluruh permission, termasuk permission yang ditambahkan kemudian.
+			$this->perm_cache[$user_id] = in_array('super_admin', $this->CI->user_model->role_codes($user_id), TRUE)
+				? $this->all_permission_codes()
+				: $this->CI->user_model->permission_codes($user_id);
 		}
 		return $this->perm_cache[$user_id];
+	}
+
+	/** @return string[] */
+	protected function all_permission_codes()
+	{
+		$codes = array();
+		foreach ($this->CI->db->select('code')->get('permissions')->result() as $row)
+		{
+			$codes[] = $row->code;
+		}
+		return $codes;
 	}
 
 	public function user_can($user_id, $permission)

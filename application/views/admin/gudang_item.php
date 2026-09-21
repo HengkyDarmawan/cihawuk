@@ -14,7 +14,7 @@ $qty = function ($value) { return rtrim(rtrim(number_format((float) $value, 3, '
 
 <?= ui_error_summary($this->form_errors) ?>
 
-<div class="row g-4 mb-4">
+<div class="row mb-4">
 	<div class="col-lg-6">
 		<div class="card shadow-sm h-100">
 			<div class="card-header"><h2 class="h6 mb-0">Saldo per lokasi</h2></div>

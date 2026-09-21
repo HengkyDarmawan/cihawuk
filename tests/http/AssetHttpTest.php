@@ -55,6 +55,11 @@ class AssetHttpTest extends HttpTestCase {
 		{
 			foreach ($this->CI->db->where('register_id', (int) $register->id)->get('asset_units')->result() as $unit)
 			{
+				foreach ($this->CI->db->where('asset_unit_id', (int) $unit->id)->get('asset_label_batch_items')->result() as $item)
+				{
+					$this->CI->db->where('batch_id', (int) $item->batch_id)->delete('asset_label_batch_items');
+					$this->CI->db->where('id', (int) $item->batch_id)->delete('asset_label_batches');
+				}
 				$this->CI->db->where('asset_unit_id', (int) $unit->id)->delete('asset_qr_tokens');
 				$this->CI->db->where('asset_unit_id', (int) $unit->id)->delete('asset_status_events');
 				$this->CI->db->where('id', (int) $unit->id)->delete('asset_units');
@@ -158,5 +163,37 @@ class AssetHttpTest extends HttpTestCase {
 		$this->assertSame(200, $listing['status']);
 		// Pengurus aset pada preset ini tidak memegang izin nilai keuangan.
 		$this->assertStringNotContainsString('17.500.000', $listing['body']);
+	}
+
+	public function test_labels_can_be_printed_for_a_whole_register(): void
+	{
+		$this->make_user('label.aset.test', array('asset_manager'), 'active');
+		$this->login('label.aset.test', self::PASSWORD, 'label');
+		$actor = $this->actor();
+		$register = $this->CI->db->where('legacy_asset_code', 'UJI-HTTP-01')->get('asset_registers')->row();
+		$draft = $this->CI->assets->create_unit($register, array('asset_tag' => 'UJI-HTTP-01-003'), (int) $actor->id);
+
+		$unit_page = $this->get('admin/aset/unit/'.$this->unit->public_id, 'label');
+		$this->assertSame(200, $unit_page['status']);
+		$this->assertStringContainsString('aset/q/'.$this->token.'"', $unit_page['body'],
+			'QR aktif selalu dapat ditampilkan lagi di halaman unit');
+
+		$register_path = 'admin/aset/'.$register->public_id;
+		$this->assertStringContainsString('Cetak QR semua unit', $this->get($register_path, 'label')['body']);
+		$created = $this->post_form($register_path, 'admin/aset/label', array('register' => $register->public_id), 'label');
+		$this->assertSame(303, $created['status']);
+		$this->assertStringContainsString('admin/aset/label/', (string) $created['location']);
+
+		$sheet = $this->get(substr((string) $created['location'], strpos((string) $created['location'], 'admin/aset/label/')), 'label');
+		$this->assertSame(200, $sheet['status']);
+		$this->assertStringContainsString('UJI-HTTP-01-001', $sheet['body']);
+		$this->assertStringContainsString('UJI-HTTP-01-003', $sheet['body']);
+		$this->assertStringContainsString('aset/q/'.$this->token.'"', $sheet['body']);
+		$this->assertNotNull($this->CI->assets->qr_token($this->CI->assets->unit($draft->public_id)),
+			'Unit tanpa QR otomatis dibuatkan QR saat dicetak');
+
+		$this->make_user('editor2.aset.test', array('content_editor'), 'active');
+		$this->login('editor2.aset.test', self::PASSWORD, 'editor2');
+		$this->assertSame(403, $this->get(substr((string) $created['location'], strpos((string) $created['location'], 'admin/aset/label/')), 'editor2')['status']);
 	}
 }

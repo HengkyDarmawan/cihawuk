@@ -1,0 +1,33 @@
+/* Lembar label QR aset: A4, 3 kolom x 8 baris (70 x 37 mm per label). */
+@page { size: A4 portrait; margin: 0; }
+* { box-sizing: border-box; }
+body.label-page { margin: 0; background: #E9EEEA; color: #182B24; font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+.label-toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;
+	padding: 12px 20px; background: #174B3A; color: #fff; font-size: 14px; }
+.label-hint { font-size: 12px; opacity: .8; margin-top: 2px; }
+.label-warning { font-size: 12px; background: #FDF3DE; color: #6B4A00; border-radius: 6px; padding: 4px 8px; margin-top: 6px; }
+.label-toolbar-actions { display: flex; gap: 8px; }
+.label-btn { display: inline-block; padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.6); background: transparent; color: #fff;
+	font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.label-btn-primary { background: #D7AF67; border-color: #D7AF67; color: #182B24; }
+.label-empty { text-align: center; padding: 40px; }
+
+.label-sheet { width: 210mm; height: 297mm; margin: 16px auto; padding: 0.5mm 0; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.15);
+	display: grid; grid-template-columns: repeat(3, 70mm); grid-auto-rows: 37mm; align-content: start; overflow: hidden; }
+.label-cell { display: flex; align-items: center; gap: 2.5mm; padding: 2.5mm 3mm; border: 1px dashed #D5DDD8; overflow: hidden; break-inside: avoid; }
+.label-qr { flex: 0 0 30mm; width: 30mm; height: 30mm; }
+.label-qr svg { display: block; width: 100%; height: 100%; }
+.label-text { min-width: 0; line-height: 1.2; }
+.label-owner { font-size: 6.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #174B3A; }
+.label-name { font-size: 8pt; font-weight: 700; margin-top: 1mm; overflow-wrap: anywhere; }
+.label-tag { font-family: ui-monospace, Consolas, monospace; font-size: 9pt; font-weight: 800; margin-top: 1.5mm; overflow-wrap: anywhere; }
+.label-foot { font-size: 5.5pt; color: #596A62; margin-top: 1.5mm; }
+
+@media print {
+	body.label-page { background: #fff; }
+	.label-toolbar { display: none; }
+	.label-sheet { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+	.label-sheet:last-child { page-break-after: auto; break-after: auto; }
+	.label-cell { border-color: transparent; }
+}

@@ -171,6 +171,65 @@ class AssetTest extends CiTestCase {
 		$this->assertSame('unknown', $this->CI->assets->resolve_token('00000000000000000000000000000000')['status']);
 	}
 
+	public function test_qr_can_be_shown_again_until_it_is_reissued(): void
+	{
+		$unit = $this->unit();
+		$this->assertNull($this->CI->assets->qr_url($unit), 'Unit tanpa QR tidak punya URL');
+
+		$token = $this->CI->assets->issue_token($unit, $this->actor->id);
+		$this->assertSame($token, $this->CI->assets->qr_token($unit), 'Token versi aktif dapat diturunkan ulang');
+		$this->assertSame(site_url('aset/q/'.$token), $this->CI->assets->qr_url($unit));
+
+		$second = $this->CI->assets->issue_token($unit, $this->actor->id);
+		$this->assertNotSame($token, $second, 'Versi baru menghasilkan token baru');
+		$this->assertSame($second, $this->CI->assets->qr_token($unit));
+		$this->assertSame('revoked', $this->CI->assets->resolve_token($token)['status']);
+
+		$this->CI->assets->revoke_token($unit, 'Label dilepas.', $this->actor->id);
+		$this->assertNull($this->CI->assets->qr_url($unit));
+	}
+
+	public function test_legacy_random_token_cannot_be_redisplayed(): void
+	{
+		$unit = $this->unit();
+		$legacy = bin2hex(random_bytes(16));
+		$this->CI->db->insert('asset_qr_tokens', array(
+			'asset_unit_id' => (int) $unit->id, 'token_digest' => hash('sha256', 'asset-qr|'.$legacy),
+			'token_version' => 1, 'status' => 'active', 'issued_at' => utc_now(),
+		));
+		$this->assertSame('ok', $this->CI->assets->resolve_token($legacy)['status'], 'Label lama tetap dapat dipindai');
+		$this->assertNull($this->CI->assets->qr_url($unit), 'Token acak lama tidak dapat digambar ulang');
+
+		$token = $this->CI->assets->ensure_token($unit, $this->actor->id);
+		$this->assertSame($token, $this->CI->assets->qr_token($unit));
+		$this->assertSame(2, (int) $this->CI->assets->active_token($unit)->token_version);
+	}
+
+	public function test_preparing_labels_issues_missing_qr_and_records_a_batch(): void
+	{
+		$with_qr = $this->unit('UJI-LAPTOP-01-001');
+		$without_qr = $this->unit('UJI-LAPTOP-01-002');
+		$existing = $this->CI->assets->issue_token($with_qr, $this->actor->id);
+
+		$batch = $this->CI->assets->prepare_labels(array($with_qr->public_id, $without_qr->public_id, 'tidak-ada'), $this->actor->id);
+		try
+		{
+			$this->assertSame(2, (int) $batch->item_count);
+			$this->assertSame($existing, $this->CI->assets->qr_token($with_qr), 'QR yang sudah ada tidak diganti');
+			$this->assertNotNull($this->CI->assets->qr_token($without_qr), 'Unit tanpa QR otomatis diterbitkan');
+
+			$items = $this->CI->assets->label_items($batch);
+			$this->assertCount(2, $items);
+			$this->assertSame(site_url('aset/q/'.$existing), $items[0]['url']);
+			$this->assertSame('[Uji] Laptop kantor desa', $items[0]['name']);
+		}
+		finally
+		{
+			$this->CI->db->where('batch_id', (int) $batch->id)->delete('asset_label_batch_items');
+			$this->CI->db->where('id', (int) $batch->id)->delete('asset_label_batches');
+		}
+	}
+
 	public function test_issuing_a_new_token_revokes_the_previous_one(): void
 	{
 		$unit = $this->unit();

@@ -26,17 +26,24 @@ class AccessControlTest extends CiTestCase {
 		$this->assertSame(0, $this->CI->ticket_query->count_all($other->id));
 	}
 
-	public function test_editor_and_super_admin_have_no_ticket_access(): void
+	public function test_editor_has_no_ticket_access_but_super_admin_has_all(): void
 	{
 		$editor = $this->make_user('editor.acl.test', array('content_editor'));
 		$super = $this->make_user('super.acl.test', array('super_admin'));
 		$r = $this->submit_ticket();
-		foreach (array($editor, $super) as $user)
-		{
-			$this->assertFalse($this->CI->authz->ticket_abilities($user->id, $r['ticket'])['view']);
-			$this->assertFalse($this->CI->authz->apply_ticket_scope($this->CI->db->from('tickets t'), $user->id));
-			$this->CI->db->reset_query();
-		}
+		$this->assertFalse($this->CI->authz->ticket_abilities($editor->id, $r['ticket'])['view']);
+		$this->assertFalse($this->CI->authz->apply_ticket_scope($this->CI->db->from('tickets t'), $editor->id));
+		$this->CI->db->reset_query();
+
+		// Super Admin memegang semua permission, termasuk permission yang ditambahkan kemudian.
+		$this->assertTrue($this->CI->authz->ticket_abilities($super->id, $r['ticket'])['view']);
+		$this->assertTrue($this->CI->authz->user_can($super->id, 'assets.view'));
+		$this->assertTrue($this->CI->authz->user_can($super->id, 'warehouse.adjust'));
+		$this->CI->db->insert('permissions', array('code' => 'uji.baru', 'description' => 'Izin uji', 'is_custom' => 1));
+		$this->CI->authz->flush($super->id);
+		$this->assertTrue($this->CI->authz->user_can($super->id, 'uji.baru'));
+		$this->assertFalse($this->CI->authz->user_can($editor->id, 'uji.baru'));
+		$this->CI->db->delete('permissions', array('code' => 'uji.baru'));
 	}
 
 	public function test_restricted_ticket_requires_confidential_permission(): void

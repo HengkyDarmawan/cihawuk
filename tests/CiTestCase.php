@@ -60,6 +60,39 @@ abstract class CiTestCase extends TestCase {
 		$db->query('SET FOREIGN_KEY_CHECKS = 1');
 	}
 
+	/**
+	 * Role granular preset lama (tests/fixtures/legacy_roles.php) dibuat sebagai role non-sistem
+	 * bila belum ada, supaya test aturan permission tetap memakai kombinasi izin yang sempit.
+	 */
+	protected function ensure_test_role($code)
+	{
+		static $legacy = NULL;
+		$db = $this->CI->db;
+		if ($db->where('code', $code)->count_all_results('roles') > 0)
+		{
+			return;
+		}
+		if ($legacy === NULL)
+		{
+			$legacy = require __DIR__.'/fixtures/legacy_roles.php';
+		}
+		if ( ! isset($legacy[$code]))
+		{
+			return;
+		}
+		$now = utc_now();
+		$db->insert('roles', array(
+			'code' => $code, 'name' => $legacy[$code]['name'], 'description' => $legacy[$code]['description'],
+			'is_system' => 0, 'is_staff' => $legacy[$code]['is_staff'], 'preset_version' => 0,
+			'created_at' => $now, 'updated_at' => $now,
+		));
+		$role_id = (int) $db->insert_id();
+		foreach ($legacy[$code]['permissions'] as $perm)
+		{
+			$db->query('INSERT IGNORE INTO role_permissions (role_id, permission_id) SELECT ?, id FROM permissions WHERE code = ?', array($role_id, $perm));
+		}
+	}
+
 	/** Buat pengguna uji dengan role tertentu. */
 	protected function make_user($username, array $roles, $status = 'active')
 	{
@@ -75,6 +108,7 @@ abstract class CiTestCase extends TestCase {
 		));
 		foreach ($roles as $role)
 		{
+			$this->ensure_test_role($role);
 			$this->CI->user_model->assign_role($id, $role, NULL);
 		}
 		if (in_array('resident', $roles, TRUE))

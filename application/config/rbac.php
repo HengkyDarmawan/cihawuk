@@ -13,7 +13,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | yang diberikan pengelola.
 */
 
-$config['preset_version'] = 8;
+$config['preset_version'] = 9;
 
 $config['permissions'] = array(
 	// Akun dan akses
@@ -103,114 +103,36 @@ $config['permissions'] = array(
 	'organization.publish' => 'Menerbitkan snapshot struktur organisasi',
 );
 
+/*
+| Role dirampingkan menjadi 4. Super Admin tetap memegang seluruh permission lewat
+| AuthorizationService (termasuk permission baru), daftar di bawah hanya untuk tampilan.
+*/
 $config['roles'] = array(
 	'super_admin' => array(
 		'name' => 'Super Admin',
-		'description' => 'Mengelola akun, role, konfigurasi, modul dan pendaftaran warga. Tidak otomatis mengakses isi laporan atau data bisnis modul lain.',
+		'description' => 'Akses penuh ke seluruh modul, pengelolaan akun, role, pengaturan dan login sebagai pengguna lain.',
 		'is_staff' => 1,
-		'permissions' => array('users.manage', 'users.impersonate', 'users.create_resident', 'users.assign_roles', 'residents.verify', 'roles.manage', 'settings.manage', 'settings.feature.manage', 'settings.security.manage', 'audit.view'),
+		'permissions' => array_keys($config['permissions']),
 	),
-	'service_admin' => array(
-		'name' => 'Admin Pelayanan',
-		'description' => 'Verifikasi, kategori, disposisi, review akun warga, input loket dan laporan operasional.',
+	'admin_desa' => array(
+		'name' => 'Admin Desa',
+		'description' => 'Mengelola seluruh pekerjaan desa: laporan warga, konten situs, data, keuangan, aset dan gudang. Tidak mengelola role dan pengaturan keamanan.',
 		'is_staff' => 1,
-		'permissions' => array('tickets.create_on_behalf', 'tickets.verify', 'tickets.assign', 'tickets.work_assigned', 'tickets.close', 'tickets.view_identity', 'tickets.export', 'residents.verify', 'users.create_resident'),
+		'permissions' => array_values(array_diff(array_keys($config['permissions']), array(
+			'roles.manage', 'users.assign_roles', 'users.impersonate', 'settings.security.manage', 'settings.feature.manage',
+		))),
 	),
-	'service_coordinator' => array(
-		'name' => 'Koordinator Pelayanan',
-		'description' => 'Monitoring lintas petugas, eskalasi, reassignment, penutupan pengecualian dan reopen.',
-		'is_staff' => 1,
-		'permissions' => array('tickets.monitor_scope', 'tickets.assign', 'tickets.close', 'tickets.reopen', 'tickets.work_assigned', 'tickets.export'),
-	),
-	'officer' => array(
+	'petugas' => array(
 		'name' => 'Petugas',
-		'description' => 'Menangani laporan yang ditugaskan dan mencatat tindak lanjut.',
+		'description' => 'Pekerjaan harian: menangani laporan yang ditugaskan, mencatat laporan loket, menyusun draft konten, serta mencatat aset dan gudang.',
 		'is_staff' => 1,
-		'permissions' => array('tickets.work_assigned'),
-	),
-	'front_desk' => array(
-		'name' => 'Petugas Loket',
-		'description' => 'Mencatat laporan yang disampaikan langsung di kantor desa.',
-		'is_staff' => 1,
-		'permissions' => array('tickets.create_on_behalf', 'tickets.work_assigned'),
-	),
-	'confidential_handler' => array(
-		'name' => 'Penangan Laporan Rahasia',
-		'description' => 'Akses khusus laporan rahasia dan identitas pelapor; dipasangkan dengan role pelayanan lain. Setiap akses diaudit.',
-		'is_staff' => 1,
-		'permissions' => array('tickets.handle_confidential', 'tickets.view_identity'),
-	),
-	'village_head' => array(
-		'name' => 'Kepala Desa',
-		'description' => 'Ringkasan, monitoring dan arahan pada kasus dalam lingkup kewenangan.',
-		'is_staff' => 1,
-		'permissions' => array('tickets.monitor_scope'),
-	),
-	'website_admin' => array(
-		'name' => 'Admin Website',
-		'description' => 'Mengelola halaman publik, section beranda, menu dan media. Penerbitan tetap memerlukan role penerbit.',
-		'is_staff' => 1,
-		'permissions' => array('content.edit', 'cms.page.view', 'cms.page.create', 'cms.page.edit', 'cms.page.submit_review', 'cms.menu.manage', 'cms.site.manage', 'cms.media.upload', 'facilities.edit', 'organization.edit', 'umkm.edit'),
-	),
-	'content_editor' => array(
-		'name' => 'Editor Konten',
-		'description' => 'Menyusun draft profil, berita, potensi, agenda, media dan statistik.',
-		'is_staff' => 1,
-		'permissions' => array('content.edit', 'cms.page.view', 'cms.page.create', 'cms.page.edit', 'cms.page.submit_review', 'cms.media.upload', 'facilities.edit'),
-	),
-	'content_publisher' => array(
-		'name' => 'Penerbit Konten',
-		'description' => 'Mereview dan menerbitkan konten, menarik publikasi, serta melakukan rollback versi publik.',
-		'is_staff' => 1,
-		'permissions' => array('content.edit', 'content.publish', 'statistics.review', 'cms.page.view', 'cms.page.approve', 'cms.page.publish', 'cms.page.unpublish', 'cms.page.rollback', 'cms.menu.manage', 'cms.media.approve_public', 'data.publish', 'facilities.publish', 'organization.publish', 'finance.publish', 'umkm.publish'),
-	),
-	'data_verifier' => array(
-		'name' => 'Verifikator Data',
-		'description' => 'Mengimpor dokumen sumber ke staging serta memeriksa angka, tahun, sumber dan konflik data.',
-		'is_staff' => 1,
-		'permissions' => array('data.import', 'data.review', 'statistics.review'),
-	),
-	'finance_manager' => array(
-		'name' => 'Pengelola Keuangan',
-		'description' => 'Mengisi anggaran, perubahan dan realisasi sebagai draft.',
-		'is_staff' => 1,
-		'permissions' => array('finance.manage'),
-	),
-	'finance_verifier' => array(
-		'name' => 'Verifikator Keuangan',
-		'description' => 'Memeriksa rekonsiliasi anggaran dan dokumen pendukung sebelum publikasi.',
-		'is_staff' => 1,
-		'permissions' => array('finance.verify'),
-	),
-	'asset_manager' => array(
-		'name' => 'Pengurus Aset',
-		'description' => 'Mengelola register, unit fisik, lokasi, label QR, mutasi dan pemeliharaan aset.',
-		'is_staff' => 1,
-		'permissions' => array('assets.view', 'assets.create', 'assets.edit', 'assets.print_labels', 'assets.move', 'assets.maintain', 'assets.change_status', 'assets.export', 'asset_audits.create'),
-	),
-	'asset_auditor' => array(
-		'name' => 'Auditor Aset',
-		'description' => 'Melaksanakan audit fisik, memindai QR dan mencatat temuan sesuai penugasan.',
-		'is_staff' => 1,
-		'permissions' => array('assets.view', 'asset_audits.perform'),
-	),
-	'asset_verifier' => array(
-		'name' => 'Verifikator Aset',
-		'description' => 'Mereview temuan audit, selisih dan usulan perubahan status aset.',
-		'is_staff' => 1,
-		'permissions' => array('assets.view', 'assets.view_documents', 'asset_audits.verify'),
-	),
-	'warehouse_officer' => array(
-		'name' => 'Petugas Gudang',
-		'description' => 'Penerimaan, pengeluaran, transfer dan stock opname persediaan. Penyesuaian saldo memerlukan permission terpisah.',
-		'is_staff' => 1,
-		'permissions' => array('warehouse.view', 'warehouse.receive', 'warehouse.issue', 'warehouse.transfer', 'warehouse.stocktake', 'warehouse.export'),
-	),
-	'system_auditor' => array(
-		'name' => 'Auditor Sistem',
-		'description' => 'Membaca log audit dan riwayat tanpa mengubah data.',
-		'is_staff' => 1,
-		'permissions' => array('audit.view'),
+		'permissions' => array(
+			'tickets.create_on_behalf', 'tickets.work_assigned', 'users.create_resident',
+			'content.edit', 'cms.page.view', 'cms.page.create', 'cms.page.edit', 'cms.page.submit_review', 'cms.media.upload',
+			'facilities.edit', 'umkm.edit',
+			'assets.view', 'assets.move', 'assets.maintain', 'assets.print_labels', 'asset_audits.perform',
+			'warehouse.view', 'warehouse.receive', 'warehouse.issue', 'warehouse.transfer', 'warehouse.stocktake',
+		),
 	),
 	'resident' => array(
 		'name' => 'Warga',
@@ -218,4 +140,51 @@ $config['roles'] = array(
 		'is_staff' => 0,
 		'permissions' => array(),
 	),
+);
+
+/*
+| Role lama (preset versi 8) dan role penggantinya. MasterSeeder memindahkan pemegang role
+| lama ke role baru lalu menghapus role lama (hanya role sistem).
+*/
+$config['legacy_role_map'] = array(
+	'service_admin' => 'admin_desa',
+	'service_coordinator' => 'admin_desa',
+	'village_head' => 'admin_desa',
+	'website_admin' => 'admin_desa',
+	'content_publisher' => 'admin_desa',
+	'data_verifier' => 'admin_desa',
+	'finance_manager' => 'admin_desa',
+	'finance_verifier' => 'admin_desa',
+	'asset_manager' => 'admin_desa',
+	'asset_verifier' => 'admin_desa',
+	'system_auditor' => 'admin_desa',
+	'confidential_handler' => 'admin_desa',
+	'officer' => 'petugas',
+	'front_desk' => 'petugas',
+	'content_editor' => 'petugas',
+	'asset_auditor' => 'petugas',
+	'warehouse_officer' => 'petugas',
+);
+
+/*
+| Nama modul untuk mengelompokkan permission di layar akses (prefix kode => label).
+*/
+$config['permission_groups'] = array(
+	'users' => 'Akun pengguna',
+	'residents' => 'Akun pengguna',
+	'roles' => 'Role dan akses',
+	'settings' => 'Pengaturan',
+	'audit' => 'Log audit',
+	'tickets' => 'Laporan warga',
+	'content' => 'Konten situs',
+	'cms' => 'Konten situs',
+	'data' => 'Data dan statistik',
+	'statistics' => 'Data dan statistik',
+	'facilities' => 'Fasilitas dan UMKM',
+	'umkm' => 'Fasilitas dan UMKM',
+	'finance' => 'Keuangan',
+	'assets' => 'Aset',
+	'asset_audits' => 'Aset',
+	'warehouse' => 'Gudang persediaan',
+	'organization' => 'Struktur organisasi',
 );

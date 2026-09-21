@@ -85,6 +85,64 @@ class MasterSeeder extends Seeder {
 				)), 'roles.preset_version');
 			}
 		}
+		$this->consolidate_legacy_roles();
+	}
+
+	/**
+	 * Pindahkan pemegang role sistem lama ke role pengganti (config rbac legacy_role_map),
+	 * lalu hapus role lama. Role buatan pengelola (is_system = 0) tidak disentuh.
+	 */
+	protected function consolidate_legacy_roles()
+	{
+		foreach ((array) $this->CI->config->item('legacy_role_map', 'rbac') as $old_code => $new_code)
+		{
+			$old = $this->CI->db->get_where('roles', array('code' => $old_code, 'is_system' => 1))->row();
+			if ( ! $old)
+			{
+				continue;
+			}
+			$new_id = $this->id_of('roles', array('code' => $new_code));
+			if ($new_id === NULL)
+			{
+				throw new RuntimeException('Role pengganti tidak dikenal: '.$new_code);
+			}
+			db_must($this->CI->db->query(
+				'INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by, assigned_at)
+					SELECT user_id, ?, assigned_by, assigned_at FROM user_roles WHERE role_id = ?',
+				array((int) $new_id, (int) $old->id)
+			), 'seed consolidate user_roles');
+			$moved = (int) $this->CI->db->where('role_id', (int) $old->id)->count_all_results('user_roles');
+			foreach (array('user_roles', 'role_permissions', 'role_menu_hidden') as $table)
+			{
+				db_must($this->CI->db->delete($table, array('role_id' => (int) $old->id)), 'seed consolidate '.$table);
+			}
+			db_must($this->CI->db->delete('roles', array('id' => (int) $old->id)), 'seed consolidate roles');
+			$this->out('Role '.$old_code.' digabung ke '.$new_code.' ('.$moved.' pengguna).');
+			$consolidated = TRUE;
+		}
+		if (empty($consolidated))
+		{
+			return;
+		}
+		// Setelah penggabungan, pengelola cukup memegang satu role pengelola: yang tertinggi.
+		$ranked = array('super_admin', 'admin_desa', 'petugas');
+		for ($i = 0; $i < count($ranked) - 1; $i++)
+		{
+			$higher_id = $this->id_of('roles', array('code' => $ranked[$i]));
+			foreach (array_slice($ranked, $i + 1) as $lower)
+			{
+				$lower_id = $this->id_of('roles', array('code' => $lower));
+				if ($higher_id === NULL OR $lower_id === NULL)
+				{
+					continue;
+				}
+				db_must($this->CI->db->query(
+					'DELETE low FROM user_roles low JOIN user_roles high ON high.user_id = low.user_id AND high.role_id = ?
+						WHERE low.role_id = ?',
+					array((int) $higher_id, (int) $lower_id)
+				), 'seed consolidate single staff role');
+			}
+		}
 	}
 
 	/**

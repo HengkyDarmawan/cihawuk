@@ -226,6 +226,114 @@ class RbacService {
 		return $out;
 	}
 
+	/**
+	 * Kelompokkan izin per modul dengan nama yang mudah dibaca (config rbac permission_groups),
+	 * mis. "assets.*" dan "asset_audits.*" → "Aset". Urutan mengikuti config.
+	 * @return array<string, object[]> label modul => izin
+	 */
+	public function module_permissions()
+	{
+		$labels = $this->module_label_map();
+		$out = array_fill_keys(array_values(array_unique($labels)), array());
+		foreach ($this->permissions() as $perm)
+		{
+			$out[$this->module_label($perm->code, $labels)][] = $perm;
+		}
+		return array_filter($out);
+	}
+
+	/**
+	 * Nama modul yang dapat diakses dari sekumpulan kode izin.
+	 * @param string[] $codes
+	 * @return string[]
+	 */
+	public function module_labels(array $codes)
+	{
+		$labels = $this->module_label_map();
+		$out = array();
+		foreach ($codes as $code)
+		{
+			$out[$this->module_label($code, $labels)] = TRUE;
+		}
+		return array_values(array_intersect(array_values(array_unique(array_merge($labels, array('Lainnya')))), array_keys($out)));
+	}
+
+	protected function module_label_map()
+	{
+		$this->CI->config->load('rbac', TRUE);
+		return (array) $this->CI->config->item('permission_groups', 'rbac');
+	}
+
+	protected function module_label($code, array $labels)
+	{
+		$prefix = strstr((string) $code, '.', TRUE) ?: (string) $code;
+		return $labels[$prefix] ?? 'Lainnya';
+	}
+
+	/** Kode izin yang dipegang satu role. @return string[] */
+	public function role_permission_codes($role)
+	{
+		if ($role->code === 'super_admin')
+		{
+			return array_map(function ($p) { return $p->code; }, $this->permissions());
+		}
+		$codes = array();
+		foreach ($this->CI->db->select('p.code')->from('role_permissions rp')->join('permissions p', 'p.id = rp.permission_id')
+			->where('rp.role_id', (int) $role->id)->get()->result() as $row)
+		{
+			$codes[] = $row->code;
+		}
+		return $codes;
+	}
+
+	/** Pengguna pemegang role (untuk tab Anggota). */
+	public function role_members($role, $limit = 200)
+	{
+		return $this->CI->db->select('u.id, u.public_id, u.username, u.display_name, u.account_status, u.last_login_at')
+			->from('user_roles ur')->join('users u', 'u.id = ur.user_id')
+			->where('ur.role_id', (int) $role->id)->order_by('u.display_name')->limit((int) $limit)->get()->result();
+	}
+
+	/**
+	 * Tetapkan tepat satu role untuk pengguna (role lain dicabut).
+	 * @return bool FALSE bila role pengguna sudah sama
+	 */
+	public function set_user_role($user, $role_code, $actor)
+	{
+		$role = $this->role($role_code);
+		if ( ! $role)
+		{
+			throw new DomainRuleException('Role tidak valid.', 422);
+		}
+		if ((int) $user->id === (int) $actor->id)
+		{
+			throw new DomainRuleException('Perubahan role untuk akun sendiri harus dilakukan oleh Super Admin lain.', 409);
+		}
+		$current = $this->CI->user_model->role_codes($user->id);
+		if ($current === array($role->code))
+		{
+			return FALSE;
+		}
+		if (in_array('super_admin', $current, TRUE) && $role->code !== 'super_admin'
+			&& $this->CI->user_model->count_active_super_admins($user->id) === 0)
+		{
+			throw new DomainRuleException('Tidak dapat mencabut Super Admin aktif terakhir.', 409);
+		}
+		db_transaction(function () use ($user, $role, $current, $actor) {
+			foreach ($current as $code)
+			{
+				if ($code !== $role->code)
+				{
+					$this->CI->user_model->revoke_role($user->id, $code);
+				}
+			}
+			$this->CI->user_model->assign_role($user->id, $role->code, (int) $actor->id);
+		});
+		$this->CI->audit->log('account.role_set', 'user', $user->public_id,
+			array('role' => $role->code, 'previous' => $current), (int) $actor->id);
+		return TRUE;
+	}
+
 	public function permission($code)
 	{
 		return $this->CI->db->get_where('permissions', array('code' => (string) $code))->row();

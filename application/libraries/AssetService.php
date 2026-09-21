@@ -8,7 +8,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Status lifecycle dan kondisi disimpan terpisah, dan setiap perubahan master ditulis
  * bersama historinya dalam satu transaksi.
  *
- * Token QR hanya ada sekali pada saat diterbitkan; yang disimpan hanyalah digestnya.
+ * Token QR diturunkan dari HMAC unit + versi; yang disimpan hanyalah digestnya.
  */
 class AssetService {
 
@@ -31,6 +31,21 @@ class AssetService {
 		'minor_damage' => 'Rusak ringan',
 		'major_damage' => 'Rusak berat',
 	);
+
+	/** Warna badge Bootstrap 4 untuk tampilan status (label tetap tertulis, bukan warna saja). */
+	const BADGES = array(
+		'lifecycle' => array('draft' => 'secondary', 'active' => 'success', 'in_maintenance' => 'warning',
+			'inactive' => 'secondary', 'transferred' => 'info', 'disposed' => 'dark', 'lost' => 'danger'),
+		'condition' => array('not_assessed' => 'light', 'good' => 'success', 'minor_damage' => 'warning', 'major_damage' => 'danger'),
+	);
+
+	/** HTML badge status lifecycle/kondisi unit untuk view pengelola. */
+	public static function badge($kind, $code)
+	{
+		$labels = $kind === 'condition' ? self::CONDITIONS : self::LIFECYCLE;
+		$class = self::BADGES[$kind][$code] ?? 'secondary';
+		return '<span class="badge badge-pill badge-'.$class.' asset-badge">'.e($labels[$code] ?? (string) $code).'</span>';
+	}
 
 	const OWNERSHIP = array(
 		'owned' => 'Milik desa',
@@ -617,15 +632,20 @@ class AssetService {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Terbitkan token QR baru untuk satu unit. Token asli dikembalikan SEKALI dan tidak
-	 * pernah disimpan; yang disimpan hanya digestnya. Token lama otomatis dicabut.
+	 * Terbitkan token QR baru untuk satu unit. Token lama otomatis dicabut.
+	 *
+	 * Token diturunkan dari HMAC (kunci APP_TOKEN_PEPPER) atas unit dan versinya, sehingga
+	 * gambar QR dapat ditampilkan dan dicetak ulang kapan saja tanpa menyimpan token asli;
+	 * basis data tetap hanya menyimpan digestnya. Menerbitkan ulang menaikkan versi sehingga
+	 * label lama tidak berlaku lagi.
 	 */
 	public function issue_token($unit, $user_id, $reason = 'Penerbitan token baru')
 	{
-		$token = bin2hex(random_bytes(16));
 		$now = utc_now();
 		$version = (int) $this->CI->db->select_max('token_version')->where('asset_unit_id', (int) $unit->id)
 			->get('asset_qr_tokens')->row('token_version') + 1;
+		$token = $this->derive_token($unit, $version);
+		$reason = trim((string) $reason) === '' ? 'Penerbitan token baru' : (string) $reason;
 
 		db_transaction(function () use ($unit, $token, $now, $version, $reason) {
 			$this->CI->db->where('asset_unit_id', (int) $unit->id)->where('status', 'active')
@@ -669,6 +689,63 @@ class AssetService {
 	protected function token_digest($token)
 	{
 		return hash('sha256', 'asset-qr|'.(string) $token);
+	}
+
+	/** Token 32 hex untuk unit dan versi tertentu (lihat issue_token). */
+	protected function derive_token($unit, $version)
+	{
+		return substr($this->CI->crypto->hmac('asset-qr|'.$unit->public_id.'|'.(int) $version, 'token'), 0, 32);
+	}
+
+	/**
+	 * Token aktif unit yang dapat ditampilkan ulang, atau NULL bila unit belum punya QR aktif
+	 * atau QR-nya token acak lama yang tidak dapat diturunkan kembali (perlu diterbitkan ulang).
+	 */
+	public function qr_token($unit, $token_row = NULL)
+	{
+		$row = $token_row ?: $this->active_token($unit);
+		if ( ! $row OR $row->status !== 'active')
+		{
+			return NULL;
+		}
+		$token = $this->derive_token($unit, (int) $row->token_version);
+		return hash_equals((string) $row->token_digest, $this->token_digest($token)) ? $token : NULL;
+	}
+
+	public function qr_url($unit, $token_row = NULL)
+	{
+		$token = $this->qr_token($unit, $token_row);
+		return $token === NULL ? NULL : site_url('aset/q/'.$token);
+	}
+
+	/** Pastikan unit punya QR yang dapat dicetak; terbitkan bila belum ada. */
+	public function ensure_token($unit, $user_id)
+	{
+		$token = $this->qr_token($unit);
+		return $token !== NULL ? $token : $this->issue_token($unit, $user_id, 'Diterbitkan otomatis saat mencetak label');
+	}
+
+	/**
+	 * Status QR per unit untuk daftar: [unit_id => 'active' | 'none'].
+	 * @param int[] $unit_ids
+	 */
+	public function qr_status_map(array $unit_ids)
+	{
+		$map = array();
+		foreach ($unit_ids as $id)
+		{
+			$map[(int) $id] = 'none';
+		}
+		if (empty($map))
+		{
+			return $map;
+		}
+		foreach ($this->CI->db->select('asset_unit_id')->where_in('asset_unit_id', array_keys($map))
+			->where('status', 'active')->get('asset_qr_tokens')->result() as $row)
+		{
+			$map[(int) $row->asset_unit_id] = 'active';
+		}
+		return $map;
 	}
 
 	/**
@@ -798,6 +875,57 @@ class AssetService {
 		$this->CI->audit->log('assets.labels_prepared', 'asset_label_batch', $public_id,
 			array('item_count' => count($units)), FALSE, 'assets');
 		return $this->CI->db->get_where('asset_label_batches', array('public_id' => $public_id))->row();
+	}
+
+	/**
+	 * Siapkan label untuk dicetak: unit yang belum punya QR (atau masih token lama) otomatis
+	 * diterbitkan QR-nya, lalu dicatat sebagai satu batch label.
+	 * @param string[] $unit_public_ids
+	 */
+	public function prepare_labels(array $unit_public_ids, $user_id)
+	{
+		$ids = array();
+		foreach ($unit_public_ids as $public_id)
+		{
+			$unit = is_string($public_id) ? $this->unit($public_id) : NULL;
+			if ($unit)
+			{
+				$this->ensure_token($unit, $user_id);
+				$ids[] = $unit->public_id;
+			}
+		}
+		if (count($ids) > 300)
+		{
+			throw new DomainRuleException('Maksimal 300 unit per sekali cetak.', 422);
+		}
+		return $this->create_label_batch(array_values(array_unique($ids)), array('template_code' => 'label.a4_24'), $user_id);
+	}
+
+	public function label_batch($public_id)
+	{
+		return $this->CI->db->get_where('asset_label_batches', array('public_id' => (string) $public_id))->row();
+	}
+
+	/** Isi label satu batch: unit, nama barang, dan URL QR (NULL bila tokennya sudah dicabut). */
+	public function label_items($batch)
+	{
+		$rows = $this->CI->db->select('i.copy_count, i.qr_token_id, u.*, r.name AS register_name')
+			->from('asset_label_batch_items i')
+			->join('asset_units u', 'u.id = i.asset_unit_id')
+			->join('asset_registers r', 'r.id = u.register_id')
+			->where('i.batch_id', (int) $batch->id)->order_by('i.position_order')->get()->result();
+		$items = array();
+		foreach ($rows as $row)
+		{
+			$token_row = $this->CI->db->get_where('asset_qr_tokens', array('id' => (int) $row->qr_token_id))->row();
+			$items[] = array(
+				'unit' => $row,
+				'name' => $row->register_name,
+				'url' => $token_row ? $this->qr_url($row, $token_row) : NULL,
+				'copies' => max(1, (int) $row->copy_count),
+			);
+		}
+		return $items;
 	}
 
 	public function mark_batch_printed($batch, $user_id)

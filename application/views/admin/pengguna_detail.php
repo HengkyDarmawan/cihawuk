@@ -84,20 +84,36 @@ $has_role = function ($code) use ($user_roles) {
 					<div class="alert alert-warning small">Ini adalah Super Admin aktif terakhir. Role dan status akun tidak dapat dicabut sebelum ada penggantinya.</div>
 				<?php endif; ?>
 
-				<?php if ($can('users.assign_roles')): ?>
-				<form method="post" action="<?= $base ?>/role" class="form-row align-items-end mb-3" data-confirm="Ubah role akun ini? Seluruh sesi pengguna tersebut akan dikeluarkan." data-confirm-ok="Ubah role">
-					<?= csrf_field() ?>
-					<div class="col-6">
-						<?= ui_select(array('name' => 'role_code', 'label' => 'Role', 'required' => TRUE, 'options' => $assignable_roles, 'placeholder_option' => 'Pilih role…', 'value' => '', 'wrap_class' => 'mb-2')) ?>
-					</div>
-					<div class="col-3">
-						<?= ui_select(array('name' => 'operation', 'label' => 'Aksi', 'options' => array('add' => 'Tambah', 'remove' => 'Cabut'), 'value' => 'add', 'wrap_class' => 'mb-2')) ?>
-					</div>
-					<div class="col-3 mb-2">
-						<button class="btn btn-primary btn-block" type="submit">Simpan</button>
-					</div>
-				</form>
+				<?php if ( ! empty($access_modules)): ?>
+				<p class="small mb-3"><strong>Bisa mengakses:</strong>
+					<?php foreach ($access_modules as $module): ?><span class="chip-flag is-info"><?= e($module) ?></span> <?php endforeach; ?>
+				</p>
+				<?php endif; ?>
 
+				<?php if ($can('users.assign_roles')): ?>
+				<?php if ((int) $account->id !== (int) $user->id): ?>
+				<form method="post" action="<?= $base ?>/role" class="mb-3" data-confirm="Ubah role akun ini? Seluruh sesi pengguna tersebut akan dikeluarkan." data-confirm-ok="Ubah role">
+					<?= csrf_field() ?>
+					<input type="hidden" name="operation" value="set">
+					<fieldset>
+						<legend class="h6">Ganti role</legend>
+						<?php $current_codes = array_map(function ($r) { return $r->code; }, $user_roles); ?>
+						<?php foreach ($assignable_roles as $code => $name): $rid = 'role-'.$code; ?>
+						<div class="custom-control custom-radio mb-1">
+							<input class="custom-control-input" type="radio" id="<?= e($rid) ?>" name="role_code" value="<?= e($code) ?>" <?= $current_codes === array($code) ? 'checked' : '' ?> required>
+							<label class="custom-control-label" for="<?= e($rid) ?>"><?= e($name) ?><?php if ( ! empty($role_descriptions[$code])): ?><span class="d-block small text-muted"><?= e($role_descriptions[$code]) ?></span><?php endif; ?></label>
+						</div>
+						<?php endforeach; ?>
+					</fieldset>
+					<button class="btn btn-primary btn-sm mt-2" type="submit">Simpan role</button>
+				</form>
+				<?php else: ?>
+					<p class="small text-muted">Role akun Anda sendiri hanya dapat diubah oleh Super Admin lain.</p>
+				<?php endif; ?>
+
+				<details class="mt-3">
+				<summary class="small font-weight-bold text-muted">Pengaturan lanjutan: lingkup unit</summary>
+				<p class="small text-muted mt-2">Hanya diperlukan untuk role kustom yang memantau laporan per unit.</p>
 				<h3 class="h6">Lingkup unit</h3>
 				<ul class="list-unstyled small">
 					<?php foreach ($scopes as $s): ?>
@@ -121,6 +137,7 @@ $has_role = function ($code) use ($user_roles) {
 					<div class="col-3"><?= ui_select(array('name' => 'scope_type', 'label' => 'Jenis', 'options' => array('member' => 'Anggota', 'monitor' => 'Pemantau', 'all' => 'Seluruh unit'), 'value' => 'member', 'wrap_class' => 'mb-2')) ?></div>
 					<div class="col-3 mb-2"><button class="btn btn-outline-primary btn-block" type="submit">Tambah</button></div>
 				</form>
+				</details>
 				<?php else: ?>
 					<p class="small text-muted mb-0">Anda tidak memiliki izin mengubah role (<code>users.assign_roles</code>).</p>
 				<?php endif; ?>

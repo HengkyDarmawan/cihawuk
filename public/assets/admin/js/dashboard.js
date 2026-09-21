@@ -90,14 +90,20 @@ window.Chw = (function ($) {
 			var title = form.getAttribute('data-confirm-title') || 'Konfirmasi tindakan';
 			var confirmText = form.getAttribute('data-confirm-ok') || 'Ya, lanjutkan';
 			var proceed = function () { form.dataset.confirmed = '1'; form.submit(); };
+			// Batal: kembalikan pilihan dropdown yang langsung mengirim form.
+			var cancel = function () {
+				form.querySelectorAll('select[data-autosubmit]').forEach(function (s) { s.value = s.getAttribute('data-original') || ''; });
+			};
 			if (window.Swal) {
 				window.Swal.fire({
 					icon: 'question', title: title, text: text, showCancelButton: true,
 					confirmButtonText: confirmText, cancelButtonText: 'Batal',
 					confirmButtonColor: '#174B3A', cancelButtonColor: '#6c757d', focusCancel: true
-				}).then(function (result) { if (result.isConfirmed) proceed(); });
+				}).then(function (result) { if (result.isConfirmed) { proceed(); } else { cancel(); } });
 			} else if (window.confirm(text)) {
 				proceed();
+			} else {
+				cancel();
 			}
 		});
 	});
@@ -148,6 +154,38 @@ window.Chw = (function ($) {
 				try { document.execCommand('copy'); done(); } catch (e) {}
 			}
 		});
+	});
+
+	/* Dropdown yang langsung mengirim form (mis. ganti role di tabel pengguna). */
+	document.querySelectorAll('select[data-autosubmit]').forEach(function (select) {
+		select.addEventListener('change', function () {
+			var form = select.form;
+			if (!form) return;
+			if (form.requestSubmit) { form.requestSubmit(); } else { form.dispatchEvent(new Event('submit', { cancelable: true })); }
+		});
+	});
+
+	/* Checkbox "Pilih semua" per kelompok izin: data-check-all="<id grup>" pada wadah data-check-group. */
+	document.querySelectorAll('[data-check-group]').forEach(function (group) {
+		var all = group.querySelector('[data-check-all]');
+		var items = group.querySelectorAll('input[type="checkbox"][data-check-item]');
+		var counter = group.querySelector('[data-check-count]');
+		var sync = function () {
+			var checked = Array.prototype.filter.call(items, function (i) { return i.checked; }).length;
+			if (all) {
+				all.checked = checked === items.length && items.length > 0;
+				all.indeterminate = checked > 0 && checked < items.length;
+			}
+			if (counter) counter.textContent = checked + '/' + items.length;
+		};
+		if (all) {
+			all.addEventListener('change', function () {
+				items.forEach(function (i) { if (!i.disabled) i.checked = all.checked; });
+				sync();
+			});
+		}
+		items.forEach(function (i) { i.addEventListener('change', sync); });
+		sync();
 	});
 
 	/* Tampilkan panel aksi sesuai pilihan (radio/select dengan data-toggle-panel). */

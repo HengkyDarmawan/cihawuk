@@ -55,7 +55,8 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 					<th scope="row"><code><?= e($finding->asset_tag) ?></code></th>
 					<td><?= e($existence[$finding->existence_result] ?? $finding->existence_result) ?></td>
 					<td><?= e($conditions[$finding->observed_condition] ?? $finding->observed_condition) ?></td>
-					<td><?= e($finding->status) ?></td>
+					<td><?php $fs = array('submitted' => array('info', 'Menunggu verifikasi'), 'verified' => array('success', 'Terverifikasi'), 'rejected' => array('danger', 'Ditolak'))[$finding->status] ?? array('secondary', $finding->status); ?>
+						<span class="badge badge-pill badge-<?= $fs[0] ?>"><?= e($fs[1]) ?></span></td>
 					<td>
 						<?php if ($can_verify && $finding->status === 'submitted'): ?>
 							<form class="d-inline" method="post" action="<?= $base ?>/temuan/<?= e($finding->public_id) ?>/terima" data-once>
