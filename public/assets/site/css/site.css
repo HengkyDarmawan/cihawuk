@@ -523,19 +523,124 @@ textarea.form-control { min-height: 160px; }
 .chart-canvas { position: relative; height: 280px; }
 .data-meta p { margin-bottom: .35rem; }
 
-/* Struktur organisasi: daftar hierarkis yang tetap terbaca tanpa JavaScript. */
-.org-chart { overflow-x: auto; }
-.org-tree { list-style: none; margin: 0; padding-left: 1.25rem; }
-.org-tree-root { padding-left: 0; }
-.org-node { position: relative; margin: 0 0 .75rem; }
-.org-tree:not(.org-tree-root) > .org-node { border-left: 2px solid var(--color-border, #dcdcdc); padding-left: 1rem; }
-.org-card { background: #fff; border: 1px solid var(--color-border, #dcdcdc); border-radius: .5rem; padding: .75rem 1rem; position: relative; }
-.org-title { font-weight: 600; margin: 0 0 .15rem; }
-.org-person { margin: 0 0 .15rem; }
-.org-unit, .org-duties { margin: 0; }
-.org-toggle { position: absolute; top: .5rem; right: .5rem; width: 1.75rem; height: 1.75rem; border-radius: 50%;
-	border: 1px solid var(--color-border, #dcdcdc); background: #fff; line-height: 1; }
-.org-card-match { outline: 2px solid var(--color-accent, #d7af67); }
-.org-card-dim { opacity: .45; }
+/* Struktur organisasi: pohon ke bawah berisi kartu. Markup tetap <ul> bertingkat sehingga
+   terbaca tanpa JavaScript; di layar sempit berubah menjadi daftar bertingkat vertikal. */
+/* Bagan memakai lebar layar penuh (bukan lebar kontainer teks) supaya pohon lebar tetap muat. */
+.org-chart { --org-line: #b9cfc2; --org-gap: 28px; --org-card: 172px; overflow-x: auto; padding: 40px 24px 48px;
+	width: 100vw; margin-left: calc(50% - 50vw);
+	/* Pita berlatar: pola titik halus di atas gradasi hijau muda, supaya terbedakan dari body. */
+	background:
+		radial-gradient(circle, rgba(31, 90, 62, .13) 1.2px, transparent 1.5px) 0 0 / 22px 22px,
+		linear-gradient(180deg, var(--color-primary-soft) 0%, #f3f8f5 55%, #ffffff 100%);
+	border-top: 1px solid #d6e4dc; border-bottom: 1px solid #d6e4dc; }
+.org-chart.is-draggable { cursor: grab; }
+.org-chart.is-dragging { cursor: grabbing; user-select: none; }
+.org-chart.is-dragging .org-card { pointer-events: none; }
+.org-drag-hint { display: flex; align-items: center; gap: .4rem; font-size: .8125rem; color: var(--color-muted); margin: 0 0 .75rem; }
+.org-group + .org-group { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px dashed #c3d6cb; }
+.org-group-title { display: table; margin: 0 auto 1.75rem; padding: .45rem 1.25rem; background: #fff; border: 1px solid #d6e4dc;
+	border-radius: 999px; font-size: 1rem; font-weight: 700; color: var(--color-primary); box-shadow: 0 4px 12px rgba(16, 42, 30, .06); }
+/* Selebar isinya dan minimal selebar layar: terpusat bila muat, bisa digeser bila tidak. */
+.org-forest { width: max-content; min-width: 100%; }
+.org-tree { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; }
+.org-tree-root { gap: 2rem; }
+.org-node { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+/* Garis penghubung: ul anak menggambar garis turun dari atasan, tiap li menggambar
+   garis mendatar ke saudara dan garis turun ke kartunya. */
+.org-tree .org-tree { position: relative; padding-top: var(--org-gap); }
+.org-tree .org-tree::before { content: ''; position: absolute; top: 0; left: 50%; height: var(--org-gap); border-left: 2px solid var(--org-line); }
+.org-tree .org-tree > .org-node { padding: var(--org-gap) 10px 0; }
+.org-tree .org-tree > .org-node::before,
+.org-tree .org-tree > .org-node::after { content: ''; position: absolute; top: 0; width: 50%; height: var(--org-gap); border-top: 2px solid var(--org-line); }
+.org-tree .org-tree > .org-node::before { right: 50%; }
+.org-tree .org-tree > .org-node::after { left: 50%; border-left: 2px solid var(--org-line); }
+.org-tree .org-tree > .org-node:first-child::before,
+.org-tree .org-tree > .org-node:last-child::after { border: 0 none; }
+.org-tree .org-tree > .org-node:last-child::before { border-right: 2px solid var(--org-line); border-radius: 0 12px 0 0; }
+.org-tree .org-tree > .org-node:first-child::after { border-radius: 12px 0 0 0; }
+.org-tree .org-tree > .org-node:only-child { padding-top: 0; }
+.org-tree .org-tree > .org-node:only-child::before,
+.org-tree .org-tree > .org-node:only-child::after { display: none; }
+
+/* Kartu */
+.org-chart .org-card { position: relative; width: var(--org-card); background: #fff; border: 1px solid var(--color-border, #dcdcdc);
+	border-radius: 16px; padding: 18px 12px 20px; text-align: center; box-shadow: 0 6px 18px rgba(16, 42, 30, .06);
+	transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.org-tree-root > .org-node > .org-card { width: calc(var(--org-card) + 28px); border-top: 4px solid var(--color-primary); }
+.org-open { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
+.org-open:disabled { cursor: default; }
+.org-open:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 6px; border-radius: 12px; }
+.org-avatar { width: 72px; height: 72px; margin-bottom: 8px; border-radius: 50%; overflow: hidden; flex: none;
+	background: var(--color-primary-soft); color: var(--color-primary); display: grid; place-items: center;
+	box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--color-primary-soft); }
+.org-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.org-chart .org-title { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); line-height: 1.3; }
+.org-chart .org-person { font-weight: 700; color: var(--color-ink); line-height: 1.3; overflow-wrap: anywhere; }
+.org-chart .org-open .badge { margin-top: 4px; }
+/* Tanpa transform: kartu yang bergeser saat hover membuat tombol lipat di tepinya ikut lari. */
+.org-chart-compact .org-card:hover { border-color: var(--color-primary); box-shadow: 0 12px 26px rgba(16, 42, 30, .14); }
+
+/* Jabatan tanpa bawahan digabung dalam grid supaya bagan tidak terlalu lebar. */
+.org-leaf-group { align-items: stretch; }
+.org-leaves { list-style: none; margin: 0; display: grid; grid-template-columns: repeat(var(--org-cols, 3), var(--org-card)); gap: 12px;
+	padding: 16px; background: rgba(255, 255, 255, .55); border: 1px dashed #bcd2c5; border-radius: 20px; backdrop-filter: blur(2px); }
+.org-leaves > .org-node { padding: 0; }
+.org-leaves .org-card { box-shadow: none; }
+
+/* Detail: tanpa JavaScript tampil di dalam kartu; dengan JavaScript tampil di dialog. */
+.org-detail { margin-top: .75rem; padding-top: .75rem; border-top: 1px dashed var(--color-border, #dcdcdc); text-align: left; }
+.org-chart-compact .org-card > .org-detail { display: none; }
+.org-detail-head { display: flex; gap: 1rem; align-items: center; margin-bottom: .75rem; }
+.org-detail-photo { flex: none; width: 96px; height: 96px; border-radius: 50%; overflow: hidden; }
+.org-detail-photo img { width: 100%; height: 100%; object-fit: cover; }
+.org-detail-title { margin: 0; font-size: .8125rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: .02em; font-weight: 600; }
+.org-detail-name { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.org-detail-list { margin: 0; }
+.org-detail-list dt { font-size: .8125rem; color: var(--color-muted); font-weight: 600; margin-top: .5rem; }
+.org-detail-list dd { margin: 0; }
+.org-detail-note { margin: .75rem 0 0; }
+.org-dialog { border: 0; border-radius: 1rem; padding: 0; width: min(92vw, 32rem); max-height: 88vh; }
+.org-dialog::backdrop { background: rgba(5, 15, 11, .6); }
+.org-dialog-body { position: relative; padding: 1.5rem 1.25rem 1.25rem; }
+.org-dialog .org-detail { margin: 0; padding: 0; border: 0; }
+.org-dialog .org-detail-head { padding-right: 2.5rem; }
+.org-dialog-close { position: absolute; top: .75rem; right: .75rem; }
+
+/* Tombol lipat: bulatan kecil di tengah bawah kartu. */
+.org-toggle { position: absolute; bottom: -13px; left: 50%; transform: translateX(-50%); z-index: 2; width: 26px; height: 26px;
+	border-radius: 50%; border: 1px solid var(--org-line, #c9d8cf); background: #fff; color: var(--color-primary); font-weight: 700; line-height: 1; padding: 0;
+	cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+.org-toggle:hover, .org-toggle:focus-visible { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.org-toggle[aria-expanded="false"] { background: var(--color-accent, #d7af67); border-color: var(--color-accent, #d7af67); color: #fff; }
+.org-card-match { outline: 3px solid var(--color-accent, #d7af67); outline-offset: 2px; }
+.org-card-dim { opacity: .4; }
 .org-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
-@media print { .org-toolbar, .org-toggle { display: none !important; } .org-tree ul { display: block !important; } }
+
+/* Layar sempit: daftar bertingkat vertikal dengan kartu mendatar. */
+@media (max-width: 767.98px) {
+	.org-chart { width: auto; margin-left: 0; padding: 20px 12px 24px; border: 1px solid #d6e4dc; border-radius: 18px; }
+	.org-drag-hint { display: none; }
+	.org-forest { width: auto; min-width: 0; }
+	.org-tree, .org-tree-root { display: block; }
+	.org-node { display: block; }
+	.org-tree .org-tree { padding: 0 0 0 14px; margin-left: 18px; border-left: 2px solid var(--org-line); }
+	.org-tree .org-tree::before, .org-tree .org-tree > .org-node::before, .org-tree .org-tree > .org-node::after { display: none; }
+	.org-tree .org-tree > .org-node, .org-tree .org-tree > .org-node:only-child { padding: 12px 0 0; }
+	.org-tree-root > .org-node + .org-node { margin-top: 1.5rem; }
+	.org-chart .org-card, .org-tree-root > .org-node > .org-card { width: auto; padding: 12px 44px 12px 12px; text-align: left; }
+	.org-open { display: grid; grid-template-columns: 52px 1fr; column-gap: 12px; align-items: center; text-align: left; }
+	.org-open > * { grid-column: 2; }
+	.org-open > .org-avatar { grid-column: 1; grid-row: 1 / span 3; width: 52px; height: 52px; margin: 0; }
+	.org-chart .org-open .badge { justify-self: start; margin-top: 2px; }
+	.org-leaves { display: block; padding: 0; background: none; }
+	.org-leaves > .org-node { padding-top: 12px; }
+	.org-toggle { top: 50%; bottom: auto; left: auto; right: 10px; transform: translateY(-50%); }
+}
+
+@media print {
+	.org-toolbar, .org-toggle, .org-dialog { display: none !important; }
+	.org-chart ul[hidden] { display: flex !important; }
+	.org-chart { overflow: visible; }
+	.org-chart .org-card { box-shadow: none; }
+}

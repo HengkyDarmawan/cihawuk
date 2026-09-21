@@ -19,6 +19,7 @@ class DemoSeedTest extends CiTestCase {
 		'asset_registers', 'asset_units', 'asset_qr_tokens', 'asset_label_batches',
 		'inventory_items', 'inventory_transactions', 'inventory_ledger', 'inventory_stocktakes',
 		'warehouse_locations', 'posts', 'events', 'demo_records',
+		'org_units', 'org_positions', 'org_assignments', 'people',
 	);
 
 	protected function counts()
@@ -49,7 +50,7 @@ class DemoSeedTest extends CiTestCase {
 		$after = $this->counts();
 		// Modul yang paling penting untuk peragaan memang harus terisi.
 		foreach (array('facilities', 'businesses', 'budget_years', 'asset_units',
-			'inventory_items', 'inventory_ledger', 'posts', 'events') as $table)
+			'inventory_items', 'inventory_ledger', 'posts', 'events', 'org_units', 'people') as $table)
 		{
 			$this->assertGreaterThan($before[$table], $after[$table], $table.' harus terisi data demo');
 		}
@@ -63,6 +64,34 @@ class DemoSeedTest extends CiTestCase {
 			$this->assertSame($before[$table], $final[$table],
 				$table.' tidak kembali ke jumlah semula setelah purge.');
 		}
+	}
+
+	public function test_demo_structure_fills_real_officials_then_restores_them(): void
+	{
+		$head = function () {
+			return $this->CI->db->select('pe.bio_public, pe.photo_consent, p.duties_public, a.start_date')
+				->from('org_assignments a')->join('org_positions p', 'p.id = a.position_id')
+				->join('people pe', 'pe.id = a.person_id')
+				->where('p.title', 'Kepala Desa')->where('pe.full_name', 'Yaya Dores')->get()->row();
+		};
+		$before = $head();
+		$this->assertNotNull($before, 'Seed master memuat Kepala Desa');
+
+		$seeder = new DemoSeeder($this->CI);
+		$seeder->run();
+		$during = $head();
+		$this->assertNotNull($during->duties_public);
+		$this->assertNotNull($during->bio_public);
+		$this->assertNotNull($during->start_date);
+		$this->assertSame(1, (int) $this->CI->db->where('unit_type', 'bpd')->count_all_results('org_units'));
+
+		$seeder->purge();
+		$after = $head();
+		$this->assertSame($before->duties_public, $after->duties_public);
+		$this->assertSame($before->bio_public, $after->bio_public);
+		$this->assertSame($before->start_date, $after->start_date);
+		$this->assertSame((int) $before->photo_consent, (int) $after->photo_consent);
+		$this->assertSame(0, (int) $this->CI->db->where('unit_type', 'bpd')->count_all_results('org_units'));
 	}
 
 	public function test_every_tracked_type_has_a_purge_rule(): void

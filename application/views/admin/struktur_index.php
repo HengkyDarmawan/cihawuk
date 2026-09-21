@@ -45,42 +45,75 @@
 	<?php endif; ?>
 </div>
 
-<div class="card shadow-sm">
+<?php
+$person_label = function ($person) {
+	return trim(($person->title_prefix ? $person->title_prefix.' ' : '').$person->full_name.($person->title_suffix ? ', '.$person->title_suffix : ''));
+};
+$ep = $edit_person;
+$media_select = array();
+foreach ($media_options as $media) { $media_select[(string) $media->id] = $media->original_name.' — '.$media->alt_text; }
+?>
+<div class="card shadow-sm" id="orang">
 	<div class="card-header"><h2 class="h6 mb-0">Orang</h2></div>
 	<div class="table-responsive">
-		<table class="table mb-0">
-			<thead><tr><th scope="col">Nama</th><th scope="col">Status data</th><th scope="col">Foto</th></tr></thead>
+		<table class="table mb-0 align-middle">
+			<thead><tr><th scope="col" style="width:64px">Foto</th><th scope="col">Nama</th><th scope="col">Status data</th><th scope="col">Izin foto</th><?php if ($can_edit): ?><th scope="col"><span class="sr-only">Aksi</span></th><?php endif; ?></tr></thead>
 			<tbody>
 			<?php foreach ($people as $person): ?>
+				<?php $photo = $person->photo_media_id ? ($photos[(int) $person->photo_media_id] ?? NULL) : NULL; ?>
 				<tr>
-					<th scope="row"><?= e(trim(($person->title_prefix ? $person->title_prefix.' ' : '').$person->full_name.($person->title_suffix ? ', '.$person->title_suffix : ''))) ?></th>
+					<td>
+						<?php if ($photo && $photo->storage_key): ?>
+							<img class="rounded-circle" src="<?= e(media_url($photo)) ?>" alt="" width="44" height="44" style="object-fit:cover" loading="lazy">
+						<?php else: ?>
+							<span class="text-muted small">&mdash;</span>
+						<?php endif; ?>
+					</td>
+					<th scope="row"><?= e($person_label($person)) ?></th>
 					<td><?= e($person->data_status) ?></td>
 					<td><?= $person->photo_media_id ? ((int) $person->photo_consent === 1 ? 'ada, berizin' : 'ada, tanpa izin') : 'belum ada' ?></td>
+					<?php if ($can_edit): ?>
+					<td class="text-right"><a class="btn btn-sm btn-outline-secondary" href="<?= site_url('admin/struktur?orang='.rawurlencode($person->public_id)) ?>#form-orang">Ubah</a></td>
+					<?php endif; ?>
 				</tr>
 			<?php endforeach; ?>
-			<?php if (empty($people)): ?><tr><td colspan="3" class="text-muted">Belum ada data orang.</td></tr><?php endif; ?>
+			<?php if (empty($people)): ?><tr><td colspan="5" class="text-muted">Belum ada data orang.</td></tr><?php endif; ?>
 			</tbody>
 		</table>
 	</div>
 	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah orang</h3>
-		<p class="small text-muted">Entitas orang terpisah dari akun login. Menutup akun tidak menghapus profil pejabat.</p>
-		<form method="post" action="<?= site_url('admin/struktur/orang/simpan') ?>" data-once>
+	<div class="card-body border-top" id="form-orang">
+		<h3 class="h6"><?= $ep ? 'Ubah orang: '.e($person_label($ep)) : 'Tambah orang' ?></h3>
+		<p class="small text-muted">Entitas orang terpisah dari akun login. Menutup akun tidak menghapus profil pejabat. Foto hanya dapat dipasang bila izin publikasinya dicatat, dan tampil publik setelah periode diterbitkan ulang.</p>
+		<form method="post" action="<?= site_url('admin/struktur/orang/simpan') ?>" enctype="multipart/form-data" data-once>
 			<?= csrf_field() ?>
+			<?php if ($ep): ?><input type="hidden" name="public_id" value="<?= e($ep->public_id) ?>"><?php endif; ?>
 			<div class="form-row">
-				<div class="col-md-2"><?= ui_input(array('name' => 'title_prefix', 'label' => 'Gelar depan', 'maxlength' => 40)) ?></div>
-				<div class="col-md-5"><?= ui_input(array('name' => 'full_name', 'label' => 'Nama lengkap', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'title_suffix', 'label' => 'Gelar belakang', 'maxlength' => 60)) ?></div>
-				<div class="col-md-2 d-flex align-items-center">
-					<div class="form-check mt-3">
-						<input class="form-check-input" type="checkbox" id="photo_consent" name="photo_consent" value="1">
-						<label class="form-check-label" for="photo_consent">Izin foto dicatat</label>
-					</div>
-				</div>
+				<div class="col-md-2"><?= ui_input(array('name' => 'title_prefix', 'label' => 'Gelar depan', 'maxlength' => 40, 'value' => $ep ? (string) $ep->title_prefix : old('title_prefix'))) ?></div>
+				<div class="col-md-5"><?= ui_input(array('name' => 'full_name', 'label' => 'Nama lengkap', 'maxlength' => 180, 'required' => TRUE, 'value' => $ep ? $ep->full_name : old('full_name'))) ?></div>
+				<div class="col-md-3"><?= ui_input(array('name' => 'title_suffix', 'label' => 'Gelar belakang', 'maxlength' => 60, 'value' => $ep ? (string) $ep->title_suffix : old('title_suffix'))) ?></div>
+				<div class="col-md-2"><?= ui_select(array('name' => 'data_status', 'label' => 'Status data', 'options' => array('draft' => 'Draft', 'reviewed' => 'Sudah direview'), 'value' => $ep ? $ep->data_status : 'draft')) ?></div>
 			</div>
-			<?= ui_textarea(array('name' => 'bio_public', 'label' => 'Bio publik yang sudah direview', 'maxlength' => 1000, 'rows' => 3)) ?>
-			<button class="btn btn-outline-primary" type="submit">Simpan orang</button>
+			<div class="form-row">
+				<div class="col-md-4"><?= ui_input(array('name' => 'foto[]', 'id' => 'foto', 'type' => 'file', 'label' => 'Unggah foto baru', 'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp', 'help' => 'JPG, PNG, atau WebP. Metadata EXIF dibuang otomatis.')) ?></div>
+				<div class="col-md-4"><?= ui_input(array('name' => 'photo_alt', 'label' => 'Teks alternatif foto', 'maxlength' => 255, 'help' => 'Kosongkan untuk memakai "Foto {nama}".')) ?></div>
+				<div class="col-md-4"><?= ui_select(array('name' => 'photo_media_id', 'label' => 'Atau pilih dari pustaka media', 'options' => $media_select, 'placeholder_option' => $ep && $ep->photo_media_id ? 'Pertahankan foto sekarang' : 'Tanpa foto', 'value' => '', 'select_class' => 'custom-select')) ?></div>
+			</div>
+			<div class="d-flex flex-wrap mb-3" style="gap:1.5rem">
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" id="photo_consent" name="photo_consent" value="1" <?= $ep && (int) $ep->photo_consent === 1 ? 'checked' : '' ?>>
+					<label class="form-check-label" for="photo_consent">Izin publikasi foto sudah dicatat</label>
+				</div>
+				<?php if ($ep && $ep->photo_media_id): ?>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" id="remove_photo" name="remove_photo" value="1">
+					<label class="form-check-label" for="remove_photo">Lepas foto dari orang ini</label>
+				</div>
+				<?php endif; ?>
+			</div>
+			<?= ui_textarea(array('name' => 'bio_public', 'label' => 'Bio publik yang sudah direview', 'maxlength' => 1000, 'rows' => 3, 'value' => $ep ? (string) $ep->bio_public : old('bio_public'))) ?>
+			<button class="btn btn-outline-primary" type="submit"><?= $ep ? 'Simpan perubahan' : 'Simpan orang' ?></button>
+			<?php if ($ep): ?><a class="btn btn-link" href="<?= site_url('admin/struktur') ?>#orang">Batal</a><?php endif; ?>
 		</form>
 	</div>
 	<?php endif; ?>

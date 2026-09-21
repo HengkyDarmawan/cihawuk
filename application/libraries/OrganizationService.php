@@ -418,6 +418,16 @@ class OrganizationService {
 			throw new DomainRuleException('Foto hanya boleh disimpan bila izin publikasinya sudah dicatat.', 422,
 				array('photo_consent' => 'Izin publikasi foto belum dicatat.'));
 		}
+		if ($photo !== NULL)
+		{
+			$media = $this->CI->db->select('mime_type')->where('id', $photo)
+				->where('deleted_at IS NULL', NULL, FALSE)->get('media_assets')->row();
+			if ( ! $media OR strpos((string) $media->mime_type, 'image/') !== 0)
+			{
+				throw new DomainRuleException('Foto harus berupa gambar dari pustaka media.', 422,
+					array('photo_media_id' => 'Media tidak ditemukan atau bukan gambar.'));
+			}
+		}
 
 		$now = utc_now();
 		$data = array(
@@ -670,6 +680,9 @@ class OrganizationService {
 				'level' => (int) $position->level,
 				'duties_public' => $position->duties_public,
 				'assignment_type' => $assignment ? $assignment->assignment_type : 'vacant',
+				// Hanya tahun: tanggal persis SK tidak perlu keluar ke publik.
+				'start_year' => ($assignment && $assignment->start_date) ? (int) substr($assignment->start_date, 0, 4) : NULL,
+				'end_year' => ($assignment && $assignment->end_date) ? (int) substr($assignment->end_date, 0, 4) : NULL,
 				'person' => $person,
 			);
 		}

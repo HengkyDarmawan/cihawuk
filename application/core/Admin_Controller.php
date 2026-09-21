@@ -31,11 +31,14 @@ class Admin_Controller extends MY_Controller {
 		}
 
 		$class = $this->router->fetch_class();
-		if ((int) $this->user->must_change_password === 1 && $class !== 'akun')
+		// Saat login sebagai, kewajiban akun milik target (ganti password, MFA) tidak dipaksakan:
+		// pengelola asli sudah melewatinya, dan aksi keamanan akun diblokir selama penyamaran.
+		$impersonating = $this->auth->is_impersonating();
+		if ( ! $impersonating && (int) $this->user->must_change_password === 1 && $class !== 'akun')
 		{
 			redirect(site_url('admin/akun'), 'location', 303);
 		}
-		if ($this->config->item('features', 'app')['mfa_enforce_privileged'] && $this->is_privileged()
+		if ( ! $impersonating && $this->config->item('features', 'app')['mfa_enforce_privileged'] && $this->is_privileged()
 			&& ! $this->auth->mfa_enabled($this->user->id) && $class !== 'akun')
 		{
 			$this->session->set_flashdata('flash', array('type' => 'warning', 'message' => 'Aktifkan autentikasi dua langkah (MFA) sebelum menggunakan dashboard pengelola.'));
@@ -50,6 +53,7 @@ class Admin_Controller extends MY_Controller {
 			'unread_notifications' => $this->notifications->unread_count($this->user->id),
 			'page_title' => 'Dashboard Pengelola',
 			'nav_active' => $class,
+			'impersonator' => $impersonating ? $this->auth->impersonator() : NULL,
 		);
 	}
 
@@ -74,9 +78,18 @@ class Admin_Controller extends MY_Controller {
 		}
 	}
 
-	/** Tindakan sensitif memerlukan konfirmasi password dalam 10 menit terakhir. */
+	/**
+	 * Tindakan sensitif memerlukan konfirmasi password dalam 10 menit terakhir, dan tidak
+	 * pernah tersedia saat login sebagai pengguna lain.
+	 */
 	protected function require_reauth()
 	{
+		if ($this->auth->is_impersonating())
+		{
+			// Password target tidak diketahui pengelola, dan tindakan sensitif tidak boleh
+			// dilakukan atas nama orang lain.
+			throw new AccessDeniedException('Sensitive action blocked while impersonating');
+		}
 		if ( ! $this->auth->recently_reauthenticated())
 		{
 			$this->session->set_userdata('reauth_next', app_safe_redirect_path((string) $this->input->server('HTTP_REFERER') ? parse_url((string) $this->input->server('HTTP_REFERER'), PHP_URL_PATH) : '/admin', '/admin'));

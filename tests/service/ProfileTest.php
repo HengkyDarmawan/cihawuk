@@ -72,6 +72,22 @@ class ProfileTest extends CiTestCase {
 		}
 	}
 
+	public function test_greeting_without_reviewed_text_renders_original_without_warning(): void
+	{
+		// Blok sambutan yang belum punya versi review tidak memuat kunci edited_text.
+		// failOnWarning membuat tes ini gagal bila view membaca kunci itu tanpa pengaman.
+		$html = $this->CI->load->view('site/profil', array(
+			'blocks' => array('greeting' => array('body' => array(
+				'author_name' => 'Kepala Desa', 'original_text' => "Paragraf pertama.
+
+Paragraf kedua.",
+			))),
+			'contact' => NULL,
+		), TRUE);
+		$this->assertStringContainsString('<p>Paragraf pertama.</p>', $html);
+		$this->assertStringContainsString('<p>Paragraf kedua.</p>', $html);
+	}
+
 	public function test_seeded_profile_is_draft_and_not_public(): void
 	{
 		$this->assertNull($this->CI->profile_service->published(), 'Profil hasil seed tidak boleh langsung publik');

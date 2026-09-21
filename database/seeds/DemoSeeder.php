@@ -16,6 +16,9 @@ class DemoSeeder extends Seeder {
 
 	protected $users = array();
 
+	/** Penghitung avatar ilustrasi per kelompok. */
+	protected $avatar_next = array();
+
 	public function run()
 	{
 		if (ENVIRONMENT === 'production')
@@ -416,6 +419,17 @@ class DemoSeeder extends Seeder {
 	// Struktur organisasi
 	// ------------------------------------------------------------------
 
+	/**
+	 * Lengkapi struktur dari seed master supaya enak diperagakan, lalu terbitkan.
+	 *
+	 * - Jabatan, penugasan, dan orang ASLI hanya diisi pada kolom yang masih kosong; kolom
+	 *   yang diisi dicatat di `demo_records.label` sehingga `purge_demo` dapat
+	 *   mengosongkannya lagi tanpa menyentuh kolom yang diisi pengelola.
+	 * - Foto memakai avatar ilustrasi (scripts/fetch-demo-avatars.php), bukan potret orang
+	 *   sungguhan, karena nama perangkat pada seed master adalah nama asli.
+	 * - BPD dan lembaga desa (LPM, PKK, Karang Taruna) adalah entitas demo baru dan dihapus
+	 *   seluruhnya saat purge.
+	 */
 	protected function organization()
 	{
 		$this->CI->load->library('OrganizationService', NULL, 'org');
@@ -428,6 +442,13 @@ class DemoSeeder extends Seeder {
 			$this->out('  Periode organisasi belum ada; jalankan tools seed lebih dulu.');
 			return;
 		}
+
+		if ( ! $this->has_demo('org_unit'))
+		{
+			$this->organization_fill_real($period);
+			$this->organization_institutions($period, $actor);
+		}
+
 		$check = $svc->validate_period($period);
 		if ( ! empty($check['errors']))
 		{
@@ -435,7 +456,248 @@ class DemoSeeder extends Seeder {
 			return;
 		}
 		$svc->publish($period, 'Penerbitan struktur untuk demonstrasi.', $actor, TRUE);
-		$this->out('  Struktur organisasi diterbitkan.');
+		$this->out('  Struktur organisasi dilengkapi dan diterbitkan.');
+	}
+
+	/** Avatar ilustrasi berikutnya dari satu kelompok ('p' atau 'w'); NULL bila belum diimpor. */
+	protected function avatar($pool)
+	{
+		$this->avatar_next[$pool] = ($this->avatar_next[$pool] ?? 0) + 1;
+		return $this->media(sprintf('avatar-%s-%02d.png', $pool, $this->avatar_next[$pool]));
+	}
+
+	/** Tulis kolom yang masih kosong saja, lalu catat kolom mana yang diisi demo. */
+	protected function fill_empty($table, $type, $row, array $values)
+	{
+		$filled = array();
+		foreach ($values as $column => $value)
+		{
+			if ($value !== NULL && $column !== 'photo_consent' && ($row->$column === NULL OR $row->$column === ''))
+			{
+				$filled[$column] = $value;
+			}
+		}
+		// Izin foto hanya ikut dinyalakan bila fotonya memang dipasang oleh demo.
+		if (isset($filled['photo_media_id']) && ! empty($values['photo_consent']) && (int) $row->photo_consent === 0)
+		{
+			$filled['photo_consent'] = 1;
+		}
+		if (empty($filled))
+		{
+			return;
+		}
+		db_must($this->CI->db->where('id', (int) $row->id)->update($table, $filled + array('updated_at' => $this->now())), 'demo '.$table.'.fill');
+		$this->track($type, $row->id, NULL, implode(',', array_keys($filled)));
+	}
+
+	protected function organization_fill_real($period)
+	{
+		// Ringkasan tugas umum per jabatan menurut Permendagri 84/2015; bukan uraian resmi desa.
+		$duties = array(
+			'Kepala Desa' => 'Memimpin penyelenggaraan pemerintahan desa, pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat desa.',
+			'Sekretaris Desa' => 'Membantu kepala desa di bidang administrasi pemerintahan: tata naskah, arsip, keuangan, perencanaan, dan urusan umum.',
+			'Kaur Keuangan' => 'Mengelola administrasi keuangan desa: penerimaan, pengeluaran, pembukuan, dan laporan pertanggungjawaban.',
+			'Kaur Perencanaan' => 'Menyusun rencana anggaran dan program kerja desa, serta memantau dan mengevaluasi pelaksanaannya.',
+			'Kaur Umum' => 'Mengurus tata usaha, arsip, perlengkapan, inventaris aset desa, dan pelayanan umum kantor desa.',
+			'Kasi Pemerintahan' => 'Melaksanakan urusan pemerintahan: administrasi kependudukan, pertanahan, ketenteraman, dan ketertiban.',
+			'Kasi Pelayanan' => 'Melaksanakan penyuluhan dan motivasi pemenuhan hak warga, serta pelayanan sosial kemasyarakatan.',
+			'Kasi Kesejahteraan' => 'Melaksanakan pembangunan sarana-prasarana desa dan pemberdayaan masyarakat di bidang pendidikan, kesehatan, dan ekonomi.',
+			'Staf' => 'Membantu pelaksanaan tugas sekretariat desa dan pelayanan administrasi harian.',
+			'Staf Kasi' => 'Membantu pelaksanaan tugas seksi, pendataan, dan pelayanan warga di kantor desa.',
+		);
+		for ($i = 1; $i <= 4; $i++)
+		{
+			$duties['Kepala Dusun '.$i] = 'Membantu kepala desa di wilayah Dusun '.$i.': pembinaan ketenteraman, pelaksanaan program desa, dan penyerapan aspirasi warga.';
+		}
+		// Kelompok avatar per nama, hanya supaya ilustrasinya tidak janggal.
+		$w = array('Rika Indriani', 'Sylvia Indri Sahada', 'Elsa Safitri');
+
+		$rows = $this->CI->db->select('a.id AS assignment_id, p.id AS position_id, p.title, pe.id AS person_id, pe.full_name')
+			->from('org_assignments a')->join('org_positions p', 'p.id = a.position_id')
+			->join('people pe', 'pe.id = a.person_id', 'left')
+			->where('a.period_id', (int) $period->id)->where('a.status', 'active')
+			->order_by('p.sort_order')->get()->result();
+		foreach ($rows as $r)
+		{
+			$this->fill_empty('org_positions', 'org_position_fields',
+				$this->CI->db->get_where('org_positions', array('id' => (int) $r->position_id))->row(),
+				array('duties_public' => $duties[$r->title] ?? NULL));
+			$this->fill_empty('org_assignments', 'org_assignment_fields',
+				$this->CI->db->get_where('org_assignments', array('id' => (int) $r->assignment_id))->row(),
+				array('start_date' => $r->title === 'Kepala Desa' ? '2019-11-12' : '2020-01-06'));
+			if ($r->person_id)
+			{
+				$this->fill_empty('people', 'person_fields',
+					$this->CI->db->get_where('people', array('id' => (int) $r->person_id))->row(),
+					array(
+						'photo_media_id' => $this->avatar(in_array($r->full_name, $w, TRUE) ? 'w' : 'p'),
+						'photo_consent' => 1,
+						'bio_public' => 'Menjabat sebagai '.$r->title.' Desa Cihawuk. Profil ini contoh untuk peragaan dan belum diverifikasi.',
+					));
+			}
+		}
+	}
+
+	/** BPD dan lembaga desa: unit, jabatan, orang, dan penugasan demo. */
+	protected function organization_institutions($period, $actor)
+	{
+		$svc = $this->CI->org;
+		/*
+		| Susunan BPD mengikuti isu data BPD_TERM_LABEL (docs/data-issues.md): ketua,
+		| wakil, dan sekretaris disebut pada S3 tetapi belum dikonfirmasi; empat anggota
+		| tidak bernama di sumber, jadi namanya karangan. Lembaga lain seluruhnya karangan.
+		| Kolom: jabatan, jabatan atasan (indeks baris), nama, kelompok avatar.
+		*/
+		$institutions = array(
+			array('Badan Permusyawaratan Desa', 'bpd', 20, 'Menyalurkan aspirasi warga, membahas dan menyepakati rancangan peraturan desa, serta mengawasi kinerja kepala desa.', array(
+				array('Ketua BPD', NULL, 'Eneng Santi Fatmawati', 'w'),
+				array('Wakil Ketua BPD', 0, 'Anjar Fauji', 'p'),
+				array('Sekretaris BPD', 0, 'Budi Kusnadi', 'p'),
+				array('Anggota BPD', 0, 'Dede Rohman', 'p'),
+				array('Anggota BPD', 0, 'Nenden Sumiati', 'w'),
+				array('Anggota BPD', 0, 'Asep Saepuloh', 'p'),
+				array('Anggota BPD', 0, 'Iis Rosita', 'w'),
+			)),
+			array('Lembaga Pemberdayaan Masyarakat (LPM)', 'institution', 30, 'Menyusun rencana pembangunan partisipatif dan menggerakkan swadaya gotong royong warga.', array(
+				array('Ketua LPM', NULL, 'Ade Mulyana', 'p'),
+				array('Sekretaris LPM', 0, 'Rudi Hermawan', 'p'),
+				array('Bendahara LPM', 0, 'Yeni Marlina', 'w'),
+			)),
+			array('Tim Penggerak PKK', 'institution', 40, 'Menggerakkan program kesejahteraan keluarga: kesehatan, gizi, pendidikan keluarga, dan ekonomi rumah tangga.', array(
+				array('Ketua TP PKK', NULL, 'Euis Komariah', 'w'),
+				array('Sekretaris TP PKK', 0, 'Rina Nurlaela', 'w'),
+				array('Bendahara TP PKK', 0, 'Siti Aminah', 'w'),
+			)),
+			array('Karang Taruna', 'institution', 50, 'Wadah pengembangan generasi muda: kegiatan sosial, olahraga, seni, dan kewirausahaan pemuda.', array(
+				array('Ketua Karang Taruna', NULL, 'Rizki Firmansyah', 'p'),
+				array('Sekretaris Karang Taruna', 0, 'Dini Apriliani', 'w'),
+				array('Bendahara Karang Taruna', 0, 'Fajar Nugraha', 'p'),
+			)),
+		);
+
+		foreach ($institutions as $inst)
+		{
+			list($unit_name, $unit_type, $sort, $mandate, $members) = $inst;
+			$unit = $svc->save_unit($period, array('name' => $unit_name, 'unit_type' => $unit_type, 'sort_order' => $sort, 'active' => 1), $actor);
+			$this->track('org_unit', $unit->id, $unit->public_id, $unit_name);
+
+			$ids = array();
+			foreach ($members as $i => $m)
+			{
+				list($title, $parent_index, $name, $pool) = $m;
+				$position = $svc->save_position($period, array(
+					'title' => $title,
+					'unit_id' => $unit->id,
+					'parent_id' => $parent_index === NULL ? NULL : $ids[$parent_index],
+					'duties_public' => $parent_index === NULL ? $mandate : $this->member_duty($title),
+					'sort_order' => $sort * 10 + $i,
+					'active' => 1,
+				), $actor);
+				$ids[$i] = (int) $position->id;
+				$this->track('org_position', $position->id, $position->public_id, $title);
+
+				$person = $svc->save_person(array(
+					'full_name' => $name,
+					'photo_media_id' => $this->avatar($pool),
+					'photo_consent' => 1,
+					'bio_public' => $title.' periode 2019–2027. Profil ini contoh untuk peragaan dan belum diverifikasi.',
+					'data_status' => 'draft',
+				), $actor);
+				$this->track('person', $person->id, $person->public_id, $name);
+
+				$assignment = $svc->save_assignment($period, array(
+					'position_id' => $position->id,
+					'person_id' => $person->id,
+					'assignment_type' => 'definitive',
+					'start_date' => '2019-12-02',
+					'end_date' => '2027-12-01',
+				), $actor);
+				$this->track('org_assignment', $assignment->id, $assignment->public_id, $title);
+			}
+		}
+	}
+
+	protected function member_duty($title)
+	{
+		if (strpos($title, 'Wakil') === 0) { return 'Membantu ketua dan memimpin rapat ketika ketua berhalangan.'; }
+		if (strpos($title, 'Sekretaris') === 0) { return 'Mengelola administrasi, notulen rapat, dan surat-menyurat lembaga.'; }
+		if (strpos($title, 'Bendahara') === 0) { return 'Mengelola keuangan dan laporan pertanggungjawaban lembaga.'; }
+		return 'Menyerap aspirasi warga di wilayahnya dan ikut membahas rancangan peraturan desa.';
+	}
+
+	/**
+	 * Hapus struktur demo dan kosongkan lagi kolom yang diisi demo pada data asli.
+	 *
+	 * Urutan: penugasan, jabatan (dari daun, karena parent_id RESTRICT), orang, unit.
+	 * Media avatar tetap di pustaka seperti foto demo lain; hanya rujukannya yang dilepas.
+	 */
+	protected function purge_organization()
+	{
+		$removed = array();
+		$assignments = $this->tracked('org_assignment');
+		if ( ! empty($assignments))
+		{
+			$this->CI->db->where_in('id', $assignments)->delete('org_assignments');
+			$removed['org_assignment'] = count($assignments);
+		}
+		$positions = $this->tracked('org_position');
+		$left = $positions;
+		while ( ! empty($left))
+		{
+			$parents = array();
+			foreach ($this->CI->db->select('parent_id')->where_in('parent_id', $left)->get('org_positions')->result() as $row)
+			{
+				$parents[(int) $row->parent_id] = TRUE;
+			}
+			$leaves = array_values(array_filter($left, function ($id) use ($parents) { return ! isset($parents[$id]); }));
+			if (empty($leaves))
+			{
+				break;
+			}
+			$this->CI->db->where_in('position_id', $leaves)->delete('org_assignments');
+			$this->CI->db->where_in('id', $leaves)->delete('org_positions');
+			$left = array_values(array_diff($left, $leaves));
+		}
+		if ( ! empty($positions))
+		{
+			$removed['org_position'] = count($positions);
+		}
+		$people = $this->tracked('person');
+		if ( ! empty($people))
+		{
+			$this->CI->db->where_in('person_id', $people)->delete('org_assignments');
+			$this->CI->db->where_in('id', $people)->delete('people');
+			$removed['person'] = count($people);
+		}
+		$units = $this->tracked('org_unit');
+		if ( ! empty($units))
+		{
+			$this->CI->db->where_in('unit_id', $units)->update('org_positions', array('unit_id' => NULL));
+			$this->CI->db->where_in('id', $units)->delete('org_units');
+			$removed['org_unit'] = count($units);
+		}
+
+		$tables = array('person_fields' => 'people', 'org_position_fields' => 'org_positions', 'org_assignment_fields' => 'org_assignments');
+		foreach ($tables as $type => $table)
+		{
+			foreach ($this->CI->db->where('entity_type', $type)->get('demo_records')->result() as $record)
+			{
+				$reset = array();
+				foreach (array_filter(explode(',', (string) $record->label)) as $column)
+				{
+					$reset[$column] = ($column === 'photo_consent') ? 0 : NULL;
+				}
+				if ( ! empty($reset))
+				{
+					$this->CI->db->where('id', (int) $record->entity_id)->update($table, $reset);
+				}
+			}
+		}
+		foreach (array_merge(array('org_assignment', 'org_position', 'person', 'org_unit'), array_keys($tables)) as $type)
+		{
+			$this->CI->db->where('entity_type', $type)->delete('demo_records');
+		}
+		return $removed;
 	}
 
 	// ------------------------------------------------------------------
@@ -1491,7 +1753,7 @@ class DemoSeeder extends Seeder {
 		$this->purge_inventory();
 		$this->purge_publications();
 
-		$removed = array();
+		$removed = $this->purge_organization();
 		foreach ($plan as $type => $spec)
 		{
 			$ids = $this->tracked($type);

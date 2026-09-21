@@ -166,7 +166,7 @@ foreach ($wanted as $key => $spec)
 	$year = preg_match('/(\d{4})/', (string) (isset($em['DateTimeOriginal']['value']) ? $em['DateTimeOriginal']['value'] : ''), $m) ? (int) $m[1] : NULL;
 	$descurl = isset($chosen['descriptionurl']) ? $chosen['descriptionurl'] : 'https://commons.wikimedia.org/';
 
-	$rows[] = array($name, $alt, $caption.' \u{2014} bukan foto Desa Cihawuk.',
+	$rows[] = array($name, $alt, $caption." \u{2014} bukan foto Desa Cihawuk.",
 		mb_substr($artist, 0, 200), $year,
 		mb_substr($license.' | '.$descurl, 0, 255), 'licensed', '', '1');
 	echo str_pad('OK', 10).str_pad($key, 22).str_pad($license, 16).mb_substr($artist, 0, 36).PHP_EOL;

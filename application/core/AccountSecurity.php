@@ -9,6 +9,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 trait AccountSecurity {
 
+	/**
+	 * Selama super admin login sebagai pengguna lain, halaman keamanan akun hanya dapat
+	 * dilihat. Ganti password, reautentikasi, sesi, dan MFA milik target tidak boleh diubah.
+	 */
+	public function _remap($method, $params = array())
+	{
+		if ($method !== 'index' && isset($this->auth) && $this->auth->is_impersonating())
+		{
+			$this->respond_error(403, 'Pengaturan keamanan akun tidak dapat diubah saat login sebagai pengguna lain.');
+			$this->finalize_headers();
+			return;
+		}
+		parent::_remap($method, $params);
+	}
+
 	protected function account_area()
 	{
 		return ($this->layout_data['area'] ?? 'warga');

@@ -14,7 +14,16 @@ $has_role = function ($code) use ($user_roles) {
 	<div class="text-right">
 		<span class="chip-flag <?= $account->account_status === 'active' ? 'is-info' : 'is-warning' ?>"><?= e(config_label('account_statuses', $account->account_status)) ?></span>
 		<?php if ($mfa_enabled): ?><span class="chip-flag is-info">MFA aktif</span><?php endif; ?>
-		<div class="mt-2"><a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/pengguna') ?>">Kembali</a></div>
+		<div class="mt-2 d-flex justify-content-end flex-wrap" style="gap:.5rem">
+			<?php if ($can('users.impersonate') && empty($impersonator) && (int) $account->id !== (int) $user->id
+				&& $account->account_status === 'active' && ! $has_role('super_admin')): ?>
+			<form method="post" action="<?= $base ?>/login-sebagai" data-confirm="Login sebagai <?= e($account->display_name) ?>? Anda akan melihat dashboard persis seperti pengguna ini selama paling lama <?= (int) AuthService::IMPERSONATION_TTL ?> menit. Semua tindakan tercatat atas nama Anda di log audit." data-confirm-ok="Login sebagai">
+				<?= csrf_field() ?>
+				<button class="btn btn-warning btn-sm" type="submit"><i class="fas fa-user-secret fa-sm mr-1" aria-hidden="true"></i> Login sebagai</button>
+			</form>
+			<?php endif; ?>
+			<a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/pengguna') ?>">Kembali</a>
+		</div>
 	</div>
 </div>
 

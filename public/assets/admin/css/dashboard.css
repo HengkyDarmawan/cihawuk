@@ -155,3 +155,6 @@ div.dataTables_wrapper div.dataTables_processing { border-radius: 12px; }
 .demo-bar { position: relative; z-index: 1041; background: #6E1F1F; color: #FBE6E6; font-size: .8125rem; padding: 7px 16px; text-align: center; }
 .demo-bar strong { color: #FFF; }
 .demo-bar code { color: #FFD9D9; background: rgba(0,0,0,.25); padding: 1px 5px; border-radius: 3px; }
+.impersonation-bar { position: sticky; top: 0; z-index: 1042; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: center; background: #F6C343; color: #3A2A00; font-size: .875rem; padding: 8px 16px; text-align: center; }
+.impersonation-bar strong { color: #1F1600; }
+.impersonation-bar form { margin: 0; }

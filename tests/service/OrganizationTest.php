@@ -191,6 +191,39 @@ class OrganizationTest extends CiTestCase {
 		}
 	}
 
+	public function test_photo_must_be_an_existing_image(): void
+	{
+		// Id yang tidak ada, atau media bukan gambar (PDF), ditolak walaupun izin tercatat.
+		$pdf = $this->CI->db->select('id')->where('mime_type', 'application/pdf')->limit(1)->get('media_assets')->row();
+		foreach (array_filter(array(987654321, $pdf ? (int) $pdf->id : NULL)) as $media_id)
+		{
+			try
+			{
+				$this->CI->org->save_person(array(
+					'full_name' => '[Uji] Foto Salah', 'photo_media_id' => $media_id, 'photo_consent' => 1,
+				), $this->actor->id);
+				$this->fail('Media #'.$media_id.' harus ditolak sebagai foto');
+			}
+			catch (DomainRuleException $e)
+			{
+				$this->assertArrayHasKey('photo_media_id', $e->errors);
+			}
+		}
+	}
+
+	public function test_snapshot_carries_assignment_years_only(): void
+	{
+		$head = $this->position('Kepala Desa');
+		$this->CI->org->save_assignment($this->period, array(
+			'position_id' => (int) $head->id, 'person_id' => (int) $this->person('[Uji] Bertahun')->id,
+			'assignment_type' => 'definitive', 'start_date' => '2024-03-15',
+		), $this->actor->id);
+		$node = $this->CI->org->build_snapshot($this->period)['nodes'][0];
+		$this->assertSame(2024, $node['start_year']);
+		$this->assertNull($node['end_year']);
+		$this->assertStringNotContainsString('2024-03-15', json_encode($node), 'Tanggal persis tidak keluar ke publik');
+	}
+
 	public function test_deactivating_a_parent_with_active_children_is_blocked(): void
 	{
 		$head = $this->position('Kepala Desa');

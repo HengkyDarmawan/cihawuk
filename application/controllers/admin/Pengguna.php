@@ -164,7 +164,7 @@ class Pengguna extends Admin_Controller {
 		$handlers = array(
 			'aktivasi' => 'do_activate', 'status' => 'do_status', 'role' => 'do_role',
 			'lingkup' => 'do_scope', 'pemulihan' => 'do_recovery', 'verifikasi' => 'do_verify_profile',
-			'mfa-reset' => 'do_mfa_reset', 'sesi' => 'do_revoke_sessions',
+			'mfa-reset' => 'do_mfa_reset', 'sesi' => 'do_revoke_sessions', 'login-sebagai' => 'do_impersonate',
 		);
 		if ( ! isset($handlers[$action]))
 		{
@@ -265,6 +265,32 @@ class Pengguna extends Admin_Controller {
 		$this->authz->flush($user->id);
 		$this->audit->log('account.role_'.$operation, 'user', $user->public_id, array('role' => $role), (int) $this->user->id);
 		$this->back($user, 'success', 'Role '.$role_row->name.($operation === 'add' ? ' ditambahkan.' : ' dicabut.').' Sesi pengguna tersebut dikeluarkan.');
+	}
+
+	/**
+	 * Login sebagai pengguna ini untuk memeriksa tampilan dan hak aksesnya. Sesi pengelola
+	 * disimpan dan dipulihkan lewat tombol "Kembali ke akun saya"; semua aksi selama
+	 * penyamaran tercatat di audit dengan impersonator_user_id.
+	 */
+	protected function do_impersonate($user)
+	{
+		$this->require_permission('users.impersonate');
+		$this->require_reauth();
+		$area = $this->auth->impersonate($this->user, $user);
+		$this->session->set_flashdata('flash', array('type' => 'info',
+			'message' => 'Anda sekarang login sebagai '.$user->display_name.'. Sesi ini berakhir otomatis dalam '.AuthService::IMPERSONATION_TTL.' menit.'));
+		if ($area === 'admin')
+		{
+			redirect(site_url('admin'), 'location', 303);
+		}
+		elseif (in_array('resident', $this->user_model->role_codes($user->id), TRUE))
+		{
+			redirect(site_url('warga'), 'location', 303);
+		}
+		else
+		{
+			redirect(site_url('/'), 'location', 303);
+		}
 	}
 
 	protected function do_scope($user)

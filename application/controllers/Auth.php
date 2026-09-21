@@ -128,6 +128,26 @@ class Auth extends Public_Controller {
 		), 'site');
 	}
 
+	/** Akhiri "login sebagai" dan kembali ke akun pengelola asli. */
+	public function stop_impersonation()
+	{
+		$this->require_method('post');
+		$target = $this->auth->stop_impersonation();
+		if ( ! $target)
+		{
+			redirect(site_url('admin'), 'location', 303);
+			return;
+		}
+		if ( ! $this->auth->user())
+		{
+			$this->flash('warning', 'Sesi Anda sendiri sudah berakhir. Silakan masuk kembali.');
+			redirect(site_url('masuk'), 'location', 303);
+			return;
+		}
+		$this->flash('success', 'Anda kembali ke akun sendiri.');
+		redirect(site_url('admin/pengguna/'.rawurlencode($target->public_id)), 'location', 303);
+	}
+
 	public function logout()
 	{
 		$this->require_method('post');

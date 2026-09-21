@@ -27,6 +27,8 @@ class AuditService {
 		$actor = ($actor_user_id === FALSE) ? $this->actor_user_id : $actor_user_id;
 		$row = array(
 			'actor_user_id' => $actor,
+			// Saat super admin login sebagai pengguna lain, pelaku sebenarnya ikut tercatat.
+			'impersonator_user_id' => $this->impersonator_id(),
 			'actor_label' => ($actor === NULL) ? ($this->actor_label !== NULL ? $this->actor_label : (is_cli() ? 'cli' : 'guest')) : NULL,
 			'action' => substr((string) $action, 0, 80),
 			'module_code' => ($module_code === NULL) ? $this->module_from_action((string) $action) : substr((string) $module_code, 0, 50),
@@ -44,6 +46,16 @@ class AuditService {
 			return FALSE;
 		}
 		return TRUE;
+	}
+
+	protected function impersonator_id()
+	{
+		if (is_cli() OR ! isset($this->CI->session))
+		{
+			return NULL;
+		}
+		$auth = $this->CI->session->userdata('auth');
+		return (is_array($auth) && ! empty($auth['imp'])) ? (int) $auth['imp'] : NULL;
 	}
 
 	/**

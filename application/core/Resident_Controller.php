@@ -24,7 +24,8 @@ class Resident_Controller extends MY_Controller {
 			// Akun petugas tanpa role warga diarahkan ke dashboard pengelola.
 			redirect(site_url('admin'), 'location', 303);
 		}
-		if ((int) $this->user->must_change_password === 1 && $this->router->fetch_class() !== 'akun')
+		$impersonating = $this->auth->is_impersonating();
+		if ( ! $impersonating && (int) $this->user->must_change_password === 1 && $this->router->fetch_class() !== 'akun')
 		{
 			redirect(site_url('warga/akun'), 'location', 303);
 		}
@@ -34,6 +35,7 @@ class Resident_Controller extends MY_Controller {
 			'unread_notifications' => $this->notifications->unread_count($this->user->id),
 			'page_title' => 'Dashboard Warga',
 			'nav_active' => $this->router->fetch_class(),
+			'impersonator' => $impersonating ? $this->auth->impersonator() : NULL,
 		);
 	}
 

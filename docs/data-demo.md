@@ -67,6 +67,7 @@ Seluruh isi berikut dibuat `tools seed_demo` dan hilang saat `tools purge_demo`.
 | Gudang | Barang, konversi satuan, transaksi terposting, opname tertutup | 25 barang, 6 transaksi |
 | Konten | Berita dan agenda | 8 + 6 |
 | Beranda | Foto hero dan foto kantor | 2 rujukan media |
+| Struktur | BPD, LPM, PKK, Karang Taruna; tugas, bio, avatar ilustrasi | 4 unit, 16 orang |
 | Akun | Akun peran `.demo` dan skenario tiket | 18 akun, 9 tiket |
 
 **Nomor telepon, surel, nama pemilik usaha, dan angka APBDes di atas tidak nyata.**
@@ -87,15 +88,38 @@ Foto yang subjeknya tidak cocok **tidak** dipakai. Pada penyusunan awal, hasil p
 sempat memberi lukisan untuk "kentang", rumah Eropa untuk "permukiman", dan stasiun kereta
 untuk "domba"; empat berkas seperti itu dibuang, bukan dibiarkan masuk.
 
-### Foto perangkat desa sengaja dikosongkan
+### Foto perangkat desa: avatar ilustrasi, bukan potret
 
-Tidak ada foto yang dipasangkan ke nama pejabat. Ada dua alasan:
+Nama 14 perangkat pada seed master adalah nama **asli** dari S3, jadi demo tidak memasang
+potret orang sungguhan pada nama itu. Wajah orang asing akan tampak sebagai pejabat desa,
+dan orang di foto tidak pernah setuju dilabeli begitu. Foto S3 juga sebagian berasal dari
+desa lain (jejak berkasnya menunjuk Margamukti/Pangalengan, lihat `docs/data-issues.md`).
 
-1. Foto di dalam S3 sebagian berasal dari desa lain — jejak berkasnya menunjuk
-   Margamukti/Pangalengan (`docs/data-issues.md`).
-2. Memasang potret orang asing dari bank foto pada nama pejabat sungguhan bukan sekadar soal
-   hak cipta, melainkan soal privasi. Memakai avatar ilustrasi pun menuntut
-   `people.photo_consent = 1`, padahal tidak ada persetujuan yang pernah dicatat.
+Sebagai gantinya demo memakai **avatar ilustrasi** dari DiceBear, gaya "Personas" oleh
+Draftbit (CC BY 4.0). Avatar ini tidak menggambarkan siapa pun.
+
+- Diunduh oleh `php scripts/fetch-demo-avatars.php` ke `reference/media/demo-avatars/`.
+  Bila jaringan gagal, skrip membuat siluet sederhana secara lokal.
+- Diimpor dengan `tools import_media demo-avatars`. Setiap berkas ditandai
+  `is_placeholder = 1` dengan caption "Ilustrasi — bukan foto asli perangkat desa".
+- `seed_demo` memasangnya bersama `photo_consent = 1` **hanya selama demo**. `purge_demo`
+  mengembalikan foto, izin, bio, uraian tugas, dan tanggal penugasan orang asli ke kosong.
+  Yang dikosongkan hanya kolom yang memang diisi demo, dan kolom itu tercatat di
+  `demo_records.label`.
+
+### Struktur organisasi demo
+
+| Isi | Asal |
+|---|---|
+| Uraian tugas 14 jabatan perangkat | Ringkasan tugas umum Permendagri 84/2015, bukan uraian resmi desa |
+| Bio singkat dan tanggal mulai penugasan | Karangan, bertanda "contoh untuk peragaan" |
+| BPD: Ketua, Wakil, Sekretaris | Nama dari isu data `BPD_TERM_LABEL` (S3, belum dikonfirmasi) |
+| BPD: empat anggota | Karangan (S3 tidak menyebut namanya) |
+| LPM, TP PKK, Karang Taruna | Karangan seluruhnya |
+
+Kartu di `/pemerintahan/struktur` hanya menampilkan foto, nama, dan jabatan. Uraian tugas,
+masa tugas, dan bio muncul di dialog saat kartu diklik. Tanpa JavaScript, detail tetap
+terbaca di bawah setiap kartu.
 
 31 gambar dari S3 tetap diimpor ke pustaka media sebagai **draft** dengan
 `rights_status = 'unknown'`, sehingga tidak pernah tampil publik. Pengelola dapat
@@ -136,7 +160,7 @@ jenis entitas yang tercatat tanpa aturan penghapusan.
 
 ## Sebelum dipakai sungguhan
 
-1. `php public/index.php tools purge_demo`
+1. `php public/index.php tools purge_demo`, lalu ganti avatar dengan foto resmi yang izinnya sudah dicatat (Admin › Struktur › Ubah)
 2. Setel `DEMO_MODE=false` pada `.env`
 3. Ganti kata sandi atau hapus seluruh akun `.demo`
 4. Isi data resmi sesuai `docs/content-needed.md`
@@ -149,6 +173,7 @@ jenis entitas yang tercatat tanpa aturan penghapusan.
 | `database/seeds/DemoSeeder.php` | Seluruh isian contoh dan rutin penghapusannya |
 | `application/migrations/016_create_demo_records_table.php` | Jejak entitas demo |
 | `scripts/fetch-demo-media.php` | Unduh foto berlisensi dari Wikimedia Commons |
+| `scripts/fetch-demo-avatars.php` | Unduh avatar ilustrasi untuk struktur organisasi |
 | `scripts/convert-doc.ps1` | Konversi S3 `.doc` menjadi `.docx` sekali jalan |
 | `reference/media/demo/manifest.csv` | Kredit dan lisensi setiap foto contoh |
 | `reference/media/s3/manifest.csv` | Gambar hasil ekstraksi S3 (tetap draft) |

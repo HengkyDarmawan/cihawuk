@@ -190,24 +190,46 @@ class AuthService {
 	{
 		$this->CI->session->sess_regenerate(TRUE);
 		$area = $this->CI->user_model->is_staff($user->id) ? 'admin' : 'resident';
+		$now = $this->CI->clock->now();
+		$this->open_session($user, $area, array('mfa' => (bool) $mfa));
+		$this->CI->user_model->update($user->id, array('last_login_at' => $now->format('Y-m-d H:i:s')));
+		$this->CI->audit->log('auth.login_success', 'user', $user->public_id, array('area' => $area, 'mfa' => (bool) $mfa), (int) $user->id);
+		$this->user = FALSE;
+	}
+
+	/**
+	 * Buat baris `user_sessions` dan isi `$_SESSION['auth']`. Pemanggil bertanggung jawab
+	 * meregenerasi ID sesi lebih dulu.
+	 *
+	 * @param array $extra mfa (bool), impersonator (int), ttl_minutes (int)
+	 */
+	protected function open_session($user, $area, array $extra = array())
+	{
 		$limits = $this->CI->config->item('session_limits', 'app');
 		$now = $this->CI->clock->now();
 		$fp_token = $this->CI->crypto->random_hex(32);
+		$ttl = (int) $limits[$area]['absolute'];
+		if ( ! empty($extra['ttl_minutes']))
+		{
+			$ttl = min($ttl, (int) $extra['ttl_minutes']);
+		}
+		$impersonator = empty($extra['impersonator']) ? NULL : (int) $extra['impersonator'];
 
 		$ua = substr(preg_replace('/[\x00-\x1F\x7F]/', '', (string) $this->CI->input->user_agent()), 0, 150);
 		db_must($this->CI->db->insert('user_sessions', array(
 			'user_id' => (int) $user->id,
+			'impersonator_user_id' => $impersonator,
 			'session_fingerprint' => hash('sha256', $fp_token),
 			'auth_version' => (int) $user->auth_version,
 			'area' => $area,
-			'device_label' => $this->device_label($ua),
+			'device_label' => $impersonator ? 'Login sebagai (oleh pengelola)' : $this->device_label($ua),
 			'created_at' => $now->format('Y-m-d H:i:s'),
 			'last_seen_at' => $now->format('Y-m-d H:i:s'),
-			'expires_at' => $now->modify('+'.$limits[$area]['absolute'].' minutes')->format('Y-m-d H:i:s'),
+			'expires_at' => $now->modify('+'.$ttl.' minutes')->format('Y-m-d H:i:s'),
 		)), 'user_sessions.create');
 		$sid = (int) $this->CI->db->insert_id();
 
-		$this->CI->session->set_userdata('auth', array(
+		$auth = array(
 			'uid' => (int) $user->id,
 			'v' => (int) $user->auth_version,
 			'area' => $area,
@@ -215,12 +237,112 @@ class AuthService {
 			'fp' => $fp_token,
 			'login_at' => $now->getTimestamp(),
 			'last' => $now->getTimestamp(),
-			'reauth_at' => $now->getTimestamp(),
-			'mfa' => (bool) $mfa,
+			// Sesi "login sebagai" tidak pernah dianggap baru reautentikasi.
+			'reauth_at' => $impersonator ? 0 : $now->getTimestamp(),
+			'mfa' => ! empty($extra['mfa']),
+		);
+		if ($impersonator)
+		{
+			$auth['imp'] = $impersonator;
+		}
+		$this->CI->session->set_userdata('auth', $auth);
+		return $sid;
+	}
+
+	// ------------------------------------------------------------------
+	// Login sebagai (impersonation)
+	// ------------------------------------------------------------------
+
+	/** Lama maksimum satu sesi "login sebagai", dalam menit. */
+	const IMPERSONATION_TTL = 60;
+
+	/** Id pengelola yang sedang login sebagai pengguna lain, atau NULL. */
+	public function impersonator_id()
+	{
+		if (is_cli() OR ! isset($this->CI->session))
+		{
+			return NULL;
+		}
+		$auth = $this->CI->session->userdata('auth');
+		return (is_array($auth) && ! empty($auth['imp'])) ? (int) $auth['imp'] : NULL;
+	}
+
+	public function is_impersonating()
+	{
+		return $this->impersonator_id() !== NULL;
+	}
+
+	/** Akun pengelola asli selama penyamaran, atau NULL. */
+	public function impersonator()
+	{
+		$id = $this->impersonator_id();
+		return $id ? $this->CI->user_model->find($id) : NULL;
+	}
+
+	/**
+	 * Mulai sesi sebagai $target. Sesi pengelola disimpan utuh dan dipulihkan oleh
+	 * stop_impersonation(); sesi target berumur paling lama IMPERSONATION_TTL menit.
+	 */
+	public function impersonate($admin, $target)
+	{
+		if ($this->is_impersonating())
+		{
+			throw new DomainRuleException('Kembali ke akun Anda sendiri sebelum login sebagai pengguna lain.', 409);
+		}
+		if ((int) $admin->id === (int) $target->id)
+		{
+			throw new DomainRuleException('Anda tidak dapat login sebagai akun Anda sendiri.', 409);
+		}
+		if ($target->account_status !== 'active')
+		{
+			throw new DomainRuleException('Hanya akun aktif yang dapat dipakai untuk login sebagai.', 409);
+		}
+		if (in_array('super_admin', $this->CI->user_model->role_codes($target->id), TRUE))
+		{
+			throw new DomainRuleException('Login sebagai Super Admin lain tidak diizinkan.', 403);
+		}
+
+		$original = $this->CI->session->userdata('auth');
+		$area = $this->CI->user_model->is_staff($target->id) ? 'admin' : 'resident';
+		$this->CI->session->sess_regenerate(TRUE);
+		$this->open_session($target, $area, array(
+			'impersonator' => (int) $admin->id,
+			'ttl_minutes' => self::IMPERSONATION_TTL,
+			'mfa' => ! empty($original['mfa']),
 		));
-		$this->CI->user_model->update($user->id, array('last_login_at' => $now->format('Y-m-d H:i:s')));
-		$this->CI->audit->log('auth.login_success', 'user', $user->public_id, array('area' => $area, 'mfa' => (bool) $mfa), (int) $user->id);
+		$this->CI->session->set_userdata('impersonator_auth', $original);
+		$this->CI->audit->log('auth.impersonation_started', 'user', $target->public_id,
+			array('area' => $area, 'minutes' => self::IMPERSONATION_TTL), (int) $admin->id, 'auth');
 		$this->user = FALSE;
+		return $area;
+	}
+
+	/**
+	 * Akhiri penyamaran dan pulihkan sesi pengelola. Mengembalikan akun target (untuk
+	 * redirect) atau NULL bila tidak sedang menyamar.
+	 */
+	public function stop_impersonation()
+	{
+		$auth = $this->CI->session->userdata('auth');
+		$original = $this->CI->session->userdata('impersonator_auth');
+		if ( ! is_array($auth) OR empty($auth['imp']))
+		{
+			return NULL;
+		}
+		$target = $this->CI->user_model->find($auth['uid']);
+		$this->CI->db->where('id', (int) $auth['sid'])->where('revoked_at IS NULL', NULL, FALSE)
+			->update('user_sessions', array('revoked_at' => utc_now()));
+		$this->CI->audit->log('auth.impersonation_ended', 'user', $target ? $target->public_id : NULL, array(), (int) $auth['imp'], 'auth');
+
+		$this->CI->session->sess_regenerate(TRUE);
+		$this->CI->session->unset_userdata(array('auth', 'impersonator_auth'));
+		if (is_array($original) && ! empty($original['uid']) && (int) $original['uid'] === (int) $auth['imp'])
+		{
+			$original['last'] = $this->CI->clock->timestamp();
+			$this->CI->session->set_userdata('auth', $original);
+		}
+		$this->user = FALSE;
+		return $target;
 	}
 
 	protected function device_label($ua)
@@ -303,8 +425,21 @@ class AuthService {
 			{
 				$this->CI->db->where('id', (int) $session_row->id)->update('user_sessions', array('revoked_at' => $now->format('Y-m-d H:i:s')));
 			}
-			$this->CI->session->unset_userdata(array('auth', 'pre_auth'));
+			$original = $this->CI->session->userdata('impersonator_auth');
+			$this->CI->session->unset_userdata(array('auth', 'pre_auth', 'impersonator_auth'));
 			$this->CI->session->sess_regenerate(TRUE);
+			// Sesi "login sebagai" yang berakhir mengembalikan pengelola ke sesinya sendiri;
+			// sesi asli itu tetap divalidasi penuh oleh pemanggilan ulang di bawah.
+			if ( ! empty($auth['imp']) && is_array($original) && (int) ($original['uid'] ?? 0) === (int) $auth['imp'])
+			{
+				$this->CI->audit->log('auth.impersonation_ended', 'user', $user ? $user->public_id : NULL,
+					array('reason' => $reason), (int) $auth['imp'], 'auth');
+				$original['last'] = $now->getTimestamp();
+				$this->CI->session->set_userdata('auth', $original);
+				$this->end_reason = NULL;
+				$this->user = FALSE;
+				return $this->user();
+			}
 			return NULL;
 		}
 
@@ -341,6 +476,11 @@ class AuthService {
 
 	public function logout()
 	{
+		// Keluar saat sedang "login sebagai" menutup penyamaran lalu sesi pengelola aslinya.
+		if ($this->is_impersonating())
+		{
+			$this->stop_impersonation();
+		}
 		$auth = $this->CI->session->userdata('auth');
 		if (is_array($auth) && ! empty($auth['sid']))
 		{

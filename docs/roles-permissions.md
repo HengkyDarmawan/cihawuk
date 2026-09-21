@@ -10,7 +10,7 @@ route-nya tetap tertutup — lihat `docs/architecture.md` bagian feature module.
 
 ## Versi preset
 
-`rbac.php` memiliki `preset_version` (saat ini `3`) dan tabel `roles` memiliki kolom `preset_version`.
+`rbac.php` memiliki `preset_version` (saat ini `8`) dan tabel `roles` memiliki kolom `preset_version`.
 Saat versi naik, seeder **menambahkan** permission preset yang belum terpasang pada role sistem lalu menyimpan versi
 barunya. Seeder tidak pernah mencabut permission; permission yang ditambahkan pengelola tetap ada. Konsekuensinya:
 bila pengelola mencabut permission preset dan versi preset kemudian naik, permission itu dapat terpasang kembali —
@@ -131,6 +131,38 @@ menerbitkan"; peran penerbit pada preset ini memang juga memegang izin menyuntin
 Permission `finance.publish`, `organization.publish`, `facilities.publish`, `umkm.publish`,
 dan `data.publish` sengaja dikumpulkan pada satu role penerbit supaya keputusan publikasi
 punya satu pintu. Desa dapat memindahkannya ke role lain lewat pengelolaan role.
+
+## Pengelolaan lewat dashboard (preset v8)
+
+**Admin › Pengaturan › Role, Izin, dan Menu** (`/admin/rbac`) memakai `roles.manage`. Setiap
+perubahan meminta konfirmasi ulang password dan tercatat di audit (`rbac.*`). Setelah seed,
+basis data adalah sumber kebenaran. `rbac.php` hanya preset awal.
+
+| Tab | Yang dapat diatur | Batasan |
+|---|---|---|
+| Role | Tambah, ubah nama/deskripsi/jenis, hapus; centang izin per role | Kode role tidak dapat diubah. Role bawaan (`is_system`) dan role yang masih dipakai tidak dapat dihapus. `super_admin` dan `resident` tidak dapat berganti jenis. Super Admin wajib tetap memegang `roles.manage`, `users.assign_roles`, dan `users.manage`. |
+| Izin | Ubah deskripsi; tambah atau hapus izin buatan (`permissions.is_custom = 1`) | Izin bawaan diperiksa kode, jadi tidak dapat dihapus. Izin buatan baru berarti setelah dipakai kode atau menu. |
+| Menu | Label, grup, urutan, aktif, dan role yang tidak melihat item | Registry item ada di `config/admin_menu.php`. Item hilang hanya bila **semua** role pengguna menyembunyikannya. `dashboard` dan `rbac` terkunci. Menyembunyikan menu **tidak** mencabut izin. |
+
+Izin dibaca ulang dari basis data pada setiap permintaan, jadi perubahan langsung berlaku
+tanpa memaksa pengguna keluar.
+
+### Login sebagai (`users.impersonate`)
+
+Super Admin dapat membuka detail pengguna lalu menekan **Login sebagai** untuk melihat
+dashboard persis seperti pengguna itu.
+
+- Membutuhkan `users.impersonate` dan konfirmasi password yang baru.
+- Tidak dapat dipakai terhadap diri sendiri, akun nonaktif, atau Super Admin lain.
+- Sesi penyamaran berumur paling lama 60 menit dan berjalan sebagai sesi terpisah
+  (`user_sessions.impersonator_user_id`). Sesi pengelola asli disimpan dan dipulihkan lewat
+  tombol **Kembali ke akun saya** di bilah kuning. Bila sesi penyamaran habis, pengelola
+  otomatis kembali ke sesinya sendiri.
+- Selama menyamar, semua tindakan yang butuh konfirmasi password ditolak (403), termasuk
+  perubahan role dan RBAC. Halaman Keamanan Akun hanya dapat dilihat.
+- Setiap entri audit selama penyamaran menyimpan `audit_logs.impersonator_user_id`. Mulai dan
+  akhir penyamaran tercatat sebagai `auth.impersonation_started` / `auth.impersonation_ended`
+  atas nama pengelola.
 
 ## Lingkup objek tiket
 

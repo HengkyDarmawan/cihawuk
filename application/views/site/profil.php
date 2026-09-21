@@ -63,7 +63,7 @@ $source_line = function ($block) {
 								— jabatan tersebut berlaku pada <?= (int) $blocks['greeting']['period_start'] ?>, bukan otomatis saat ini.
 							<?php endif; ?>
 						</p>
-						<?php foreach (preg_split('/\r?\n\r?\n/', (string) ($greeting['edited_text'] ?: $greeting['original_text'] ?? '')) as $paragraph): ?>
+						<?php foreach (preg_split('/\r?\n\r?\n/', (string) (($greeting['edited_text'] ?? '') ?: ($greeting['original_text'] ?? ''))) as $paragraph): ?>
 							<?php if (trim($paragraph) !== ''): ?><p><?= e(trim($paragraph)) ?></p><?php endif; ?>
 						<?php endforeach; ?>
 						<p class="small text-muted"><?= e($source_line($blocks['greeting'] ?? NULL)) ?></p>

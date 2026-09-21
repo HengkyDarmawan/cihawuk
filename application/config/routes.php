@@ -88,6 +88,7 @@ $route['lupa-password']['POST'] = 'auth/forgot_submit';
 $route['reset-password']['GET'] = 'auth/reset';
 $route['reset-password']['POST'] = 'auth/reset_submit';
 $route['keluar']['POST'] = 'auth/logout';
+$route['akun/kembali']['POST'] = 'auth/stop_impersonation';
 $route['bantuan-akun'] = 'auth/help';
 
 // Berkas privat
@@ -140,6 +141,20 @@ $route['admin/pengguna/buat']['GET'] = 'admin/pengguna/create';
 $route['admin/pengguna/buat']['POST'] = 'admin/pengguna/store';
 $route['admin/pengguna/(:any)/(:any)']['POST'] = 'admin/pengguna/action/$1/$2';
 $route['admin/pengguna/(:any)']['GET'] = 'admin/pengguna/show/$1';
+
+// Role, izin, dan menu dashboard (roles.manage).
+$route['admin/rbac']['GET'] = 'admin/rbac/index';
+$route['admin/rbac/role/baru']['GET'] = 'admin/rbac/role_create';
+$route['admin/rbac/role/baru']['POST'] = 'admin/rbac/role_store';
+$route['admin/rbac/role/(:any)/hapus']['POST'] = 'admin/rbac/role_delete/$1';
+$route['admin/rbac/role/(:any)']['GET'] = 'admin/rbac/role_edit/$1';
+$route['admin/rbac/role/(:any)']['POST'] = 'admin/rbac/role_update/$1';
+$route['admin/rbac/izin']['GET'] = 'admin/rbac/permissions';
+$route['admin/rbac/izin']['POST'] = 'admin/rbac/permission_store';
+$route['admin/rbac/izin/(:any)/hapus']['POST'] = 'admin/rbac/permission_delete/$1';
+$route['admin/rbac/izin/(:any)']['POST'] = 'admin/rbac/permission_update/$1';
+$route['admin/rbac/menu']['GET'] = 'admin/rbac/menu';
+$route['admin/rbac/menu']['POST'] = 'admin/rbac/menu_save';
 
 // Pengaturan beranda dan halaman publik (section registry, versi, snapshot)
 $route['admin/cms/beranda']['GET'] = 'admin/cms/home';

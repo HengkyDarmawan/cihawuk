@@ -11,57 +11,18 @@ $title = ($page_title ?? 'Dashboard').' — '.($is_admin ? 'Pengelola' : 'Warga'
 
 if ($is_admin)
 {
-	// Menu hanya tampil bila pengguna punya permission DAN modulnya tersedia.
-	// Menyembunyikan menu bukan kontrol akses: setiap route tetap diperiksa di server.
-	$module_on = function ($code) {
-		$CI =& get_instance();
-		$CI->load->library('FeatureModuleService', NULL, 'modules');
-		return $CI->modules->backend_available($code);
-	};
-
+	// Registry config/admin_menu.php + pengaturan Role & Izin. Menu hanya tampil bila izin
+	// dan modulnya terpenuhi; menyembunyikan menu bukan kontrol akses, setiap route tetap
+	// diperiksa di server.
+	$CI =& get_instance();
+	$CI->load->library('AdminMenuService', NULL, 'admin_menu');
 	$menu = array();
-	$menu[] = array('heading' => NULL, 'items' => array(
-		array('key' => 'dashboard', 'url' => 'admin', 'icon' => 'fa-gauge-high fa-tachometer-alt', 'label' => 'Ringkasan', 'show' => TRUE),
-	));
-	$menu[] = array('heading' => 'Layanan Warga', 'items' => array(
-		array('key' => 'laporan', 'url' => 'admin/laporan', 'icon' => 'fa-inbox', 'label' => 'Pengaduan dan Aspirasi', 'show' => $module_on('complaints') && $can_any(array('tickets.verify', 'tickets.monitor_scope', 'tickets.work_assigned'))),
-		array('key' => 'laporan-buat', 'url' => 'admin/laporan/buat', 'icon' => 'fa-pen-to-square fa-edit', 'label' => 'Input dari Loket', 'show' => $module_on('complaints') && $can('tickets.create_on_behalf')),
-		array('key' => 'ekspor', 'url' => 'admin/ekspor', 'icon' => 'fa-file-export', 'label' => 'Laporan dan Ekspor', 'show' => $can('tickets.export')),
-	));
-	$menu[] = array('heading' => 'Website dan CMS', 'items' => array(
-		array('key' => 'cms-beranda', 'url' => 'admin/cms/beranda', 'icon' => 'fa-layer-group fa-object-group', 'label' => 'Pengaturan Beranda', 'show' => $can('cms.page.view')),
-		array('key' => 'cms-halaman', 'url' => 'admin/cms/halaman', 'icon' => 'fa-file-lines fa-file-alt', 'label' => 'Halaman Publik', 'show' => $can('cms.page.view')),
-		array('key' => 'cms-menu', 'url' => 'admin/cms/menu', 'icon' => 'fa-bars', 'label' => 'Menu dan Navigasi', 'show' => $can('cms.menu.manage')),
-		array('key' => 'cms-situs', 'url' => 'admin/cms/situs', 'icon' => 'fa-palette', 'label' => 'Identitas dan Tema', 'show' => $can('cms.site.manage')),
-		array('key' => 'profil', 'url' => 'admin/profil', 'icon' => 'fa-address-card', 'label' => 'Profil Desa', 'show' => $can_any(array('content.edit', 'content.publish'))),
-		array('key' => 'konten', 'url' => 'admin/konten', 'icon' => 'fa-newspaper', 'label' => 'Konten Situs', 'show' => $can_any(array('content.edit', 'cms.page.view'))),
-		array('key' => 'media', 'url' => 'admin/media', 'icon' => 'fa-images', 'label' => 'Media Library', 'show' => $can_any(array('content.edit', 'cms.media.upload'))),
-	));
-	$menu[] = array('heading' => 'Data Desa', 'items' => array(
-		array('key' => 'dataset', 'url' => 'admin/dataset', 'icon' => 'fa-chart-column fa-chart-bar', 'label' => 'Dataset Publik', 'show' => $module_on('village_data') && $can_any(array('data.review', 'data.publish'))),
-		array('key' => 'statistik', 'url' => 'admin/statistik', 'icon' => 'fa-chart-bar', 'label' => 'Nilai dan Dokumen Sumber', 'show' => $module_on('village_data') && $can_any(array('content.edit', 'statistics.review', 'data.review'))),
-	));
-	$menu[] = array('heading' => 'Potensi dan Fasilitas', 'items' => array(
-		array('key' => 'umkm', 'url' => 'admin/umkm', 'icon' => 'fa-store', 'label' => 'Direktori UMKM', 'show' => $module_on('umkm_directory') && $can_any(array('umkm.edit', 'umkm.publish'))),
-		array('key' => 'fasilitas', 'url' => 'admin/fasilitas', 'icon' => 'fa-location-dot fa-map-marker-alt', 'label' => 'Direktori Fasilitas', 'show' => $module_on('facilities') && $can_any(array('facilities.edit', 'facilities.publish'))),
-	));
-	$menu[] = array('heading' => 'Pemerintahan', 'items' => array(
-		array('key' => 'struktur', 'url' => 'admin/struktur', 'icon' => 'fa-sitemap', 'label' => 'Struktur Organisasi', 'show' => $module_on('organization') && $can('organization.edit')),
-	));
-	$menu[] = array('heading' => 'Transparansi Keuangan', 'items' => array(
-		array('key' => 'keuangan', 'url' => 'admin/keuangan', 'icon' => 'fa-coins', 'label' => 'Anggaran dan Realisasi', 'show' => $module_on('budget_transparency') && $can_any(array('finance.manage', 'finance.verify', 'finance.publish'))),
-	));
-	$menu[] = array('heading' => 'Aset dan Persediaan', 'items' => array(
-		array('key' => 'aset', 'url' => 'admin/aset', 'icon' => 'fa-boxes-stacked fa-box', 'label' => 'Aset dan QR', 'show' => $module_on('assets') && $can('assets.view')),
-		array('key' => 'audit-aset', 'url' => 'admin/audit-aset', 'icon' => 'fa-clipboard-check', 'label' => 'Audit Aset', 'show' => $module_on('assets') && $can_any(array('asset_audits.create', 'asset_audits.perform', 'asset_audits.verify'))),
-		array('key' => 'gudang', 'url' => 'admin/gudang', 'icon' => 'fa-warehouse', 'label' => 'Gudang Persediaan', 'show' => $module_on('warehouse') && $can('warehouse.view')),
-	));
-	$menu[] = array('heading' => 'Pengaturan', 'items' => array(
-		array('key' => 'pengguna', 'url' => 'admin/pengguna', 'icon' => 'fa-users', 'label' => 'Pengguna', 'show' => $can_any(array('users.manage', 'users.create_resident', 'residents.verify', 'users.assign_roles'))),
-		array('key' => 'pengaturan', 'url' => 'admin/pengaturan', 'icon' => 'fa-sliders-h', 'label' => 'Pengaturan Aplikasi', 'show' => $can('settings.manage')),
-		array('key' => 'modul', 'url' => 'admin/pengaturan/modul', 'icon' => 'fa-toggle-on', 'label' => 'Modul dan Feature Toggle', 'show' => $can('settings.feature.manage')),
-		array('key' => 'audit', 'url' => 'admin/audit', 'icon' => 'fa-clipboard-list', 'label' => 'Log Audit', 'show' => $can('audit.view')),
-	));
+	foreach ($CI->admin_menu->for_user((int) $user->id, $perms) as $group)
+	{
+		foreach ($group['items'] as &$item) { $item['show'] = TRUE; }
+		unset($item);
+		$menu[] = $group;
+	}
 }
 else
 {
@@ -93,6 +54,15 @@ else
 </head>
 <body id="page-top" class="area-<?= $is_admin ? 'admin' : 'warga' ?>" data-csrf-name="<?= e($this->security->get_csrf_token_name()) ?>" data-csrf-hash="<?= e($this->security->get_csrf_hash()) ?>">
 	<a class="skip-link" href="#konten">Lewati ke konten utama</a>
+	<?php if ( ! empty($impersonator)): ?>
+	<div class="impersonation-bar" role="status">
+		<span><i class="fas fa-user-secret mr-1" aria-hidden="true"></i> Anda sedang <strong>login sebagai <?= e($user->display_name) ?></strong> (<?= e($user->username) ?>). Akun asli: <?= e($impersonator->display_name) ?>. Semua tindakan tercatat di log audit.</span>
+		<form method="post" action="<?= site_url('akun/kembali') ?>">
+			<?= csrf_field() ?>
+			<button class="btn btn-sm btn-dark" type="submit">Kembali ke akun saya</button>
+		</form>
+	</div>
+	<?php endif; ?>
 	<?php if ( ! empty($this->config->item('features', 'app')['demo_mode'])): ?>
 	<div class="demo-bar" role="status">
 		<strong>Mode demonstrasi aktif.</strong> Sebagian isi basis data ini adalah contoh. Hapus dengan <code>tools purge_demo</code> dan setel <code>DEMO_MODE=false</code> sebelum dipakai sungguhan.

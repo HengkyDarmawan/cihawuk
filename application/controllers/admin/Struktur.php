@@ -13,16 +13,30 @@ class Struktur extends Admin_Controller {
 	{
 		parent::__construct();
 		$this->load->library('OrganizationService', NULL, 'org');
+		$this->load->library('UploadService', NULL, 'uploads');
 		$this->layout_data['nav_active'] = 'struktur';
 	}
 
 	public function index()
 	{
 		$this->require_any(array('organization.edit', 'organization.publish'));
+		$people = $this->org->people();
+		$photos = array();
+		foreach ($people as $person)
+		{
+			if ($person->photo_media_id)
+			{
+				$photos[(int) $person->photo_media_id] = TRUE;
+			}
+		}
+		$edit_id = (string) $this->input->get('orang');
 		$this->render('admin/struktur_index', array(
 			'page_title' => 'Struktur Organisasi',
 			'periods' => $this->org->periods(),
-			'people' => $this->org->people(),
+			'people' => $people,
+			'photos' => $this->media_by_id(array_keys($photos)),
+			'media_options' => $this->image_options(),
+			'edit_person' => $edit_id !== '' ? $this->org->person($edit_id) : NULL,
 			'can_edit' => $this->authz->can('organization.edit'),
 			'can_publish' => $this->authz->can('organization.publish'),
 		), 'dashboard');
@@ -118,8 +132,11 @@ class Struktur extends Admin_Controller {
 		$this->require_method('post');
 		$this->require_permission('organization.edit');
 		$public_id = $this->post_string('public_id', 26) ?: NULL;
-		$this->org->save_person($this->input->post(NULL, FALSE) ?: array(), (int) $this->user->id, $public_id);
-		$this->flash('success', 'Data orang disimpan. Akun login tetap entitas terpisah.');
+		$input = $this->input->post(NULL, FALSE) ?: array();
+		$existing = $public_id ? $this->org->person($public_id) : NULL;
+		$input['photo_media_id'] = $this->resolve_photo($input, $existing);
+		$this->org->save_person($input, (int) $this->user->id, $public_id);
+		$this->flash('success', 'Data orang disimpan. Terbitkan ulang periode agar perubahan tampil di halaman publik.');
 		redirect(site_url('admin/struktur'), 'location', 303);
 	}
 
@@ -176,6 +193,68 @@ class Struktur extends Admin_Controller {
 		}
 		$this->flash('success', $message);
 		$this->back($public_id);
+	}
+
+	/**
+	 * Foto orang: unggahan baru diutamakan, lalu pilihan dari pustaka, lalu foto lama.
+	 * Izin publikasi diperiksa sebelum berkas disentuh, supaya foto tanpa izin tidak
+	 * pernah masuk pustaka media sebagai foto pejabat.
+	 */
+	protected function resolve_photo(array $input, $existing)
+	{
+		if ( ! empty($input['remove_photo']))
+		{
+			return NULL;
+		}
+		$name = mb_substr(trim((string) ($input['full_name'] ?? '')), 0, 180);
+		if ( ! empty($_FILES['foto']['name']) && is_array($_FILES['foto']['name'])
+			&& (int) ($_FILES['foto']['error'][0] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)
+		{
+			if (empty($input['photo_consent']))
+			{
+				throw new DomainRuleException('Centang izin publikasi foto sebelum mengunggah foto pejabat.', 422,
+					array('photo_consent' => 'Izin publikasi foto belum dicatat.'));
+			}
+			$alt = $this->post_string('photo_alt', 255) ?: 'Foto '.$name;
+			$media_id = $this->uploads->store_media_asset('foto', array(
+				'alt_text' => $alt,
+				'caption' => $name,
+				'people_shown' => $name,
+				'rights_status' => 'permission_granted',
+			), (int) $this->user->id);
+			$this->uploads->commit_staged();
+			$this->audit->log('media.uploaded', 'media', (string) $media_id, array('context' => 'organization.person'));
+			return (int) $media_id;
+		}
+		if ( ! empty($input['photo_media_id']))
+		{
+			return (int) $input['photo_media_id'];
+		}
+		return ($existing && $existing->photo_media_id) ? (int) $existing->photo_media_id : NULL;
+	}
+
+	/** Gambar pustaka yang status haknya jelas, untuk dipilih sebagai foto orang. */
+	protected function image_options()
+	{
+		return $this->db->select('id, original_name, alt_text')
+			->where('deleted_at IS NULL', NULL, FALSE)
+			->like('mime_type', 'image/', 'after')
+			->where_in('rights_status', array('owned', 'licensed', 'permission_granted'))
+			->order_by('id', 'DESC')->limit(200)->get('media_assets')->result();
+	}
+
+	protected function media_by_id(array $ids)
+	{
+		if (empty($ids))
+		{
+			return array();
+		}
+		$out = array();
+		foreach ($this->db->where_in('id', $ids)->where('deleted_at IS NULL', NULL, FALSE)->get('media_assets')->result() as $media)
+		{
+			$out[(int) $media->id] = $media;
+		}
+		return $out;
 	}
 
 	protected function require_period($public_id)

@@ -13,11 +13,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | yang diberikan pengelola.
 */
 
-$config['preset_version'] = 7;
+$config['preset_version'] = 8;
 
 $config['permissions'] = array(
 	// Akun dan akses
 	'users.manage' => 'Mengelola akun pengguna (status, data akun)',
+	'users.impersonate' => 'Login sebagai pengguna lain untuk memeriksa tampilan dan hak aksesnya',
 	'users.create_resident' => 'Mendaftarkan akun warga',
 	'users.assign_roles' => 'Memberi atau mencabut role pengguna',
 	'residents.verify' => 'Mereview dan mengaktifkan akun/profil warga',
@@ -107,7 +108,7 @@ $config['roles'] = array(
 		'name' => 'Super Admin',
 		'description' => 'Mengelola akun, role, konfigurasi, modul dan pendaftaran warga. Tidak otomatis mengakses isi laporan atau data bisnis modul lain.',
 		'is_staff' => 1,
-		'permissions' => array('users.manage', 'users.create_resident', 'users.assign_roles', 'residents.verify', 'roles.manage', 'settings.manage', 'settings.feature.manage', 'settings.security.manage', 'audit.view'),
+		'permissions' => array('users.manage', 'users.impersonate', 'users.create_resident', 'users.assign_roles', 'residents.verify', 'roles.manage', 'settings.manage', 'settings.feature.manage', 'settings.security.manage', 'audit.view'),
 	),
 	'service_admin' => array(
 		'name' => 'Admin Pelayanan',
