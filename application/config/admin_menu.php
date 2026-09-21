@@ -46,7 +46,7 @@ $config['admin_menu'] = array(
 		array('key' => 'keuangan', 'url' => 'admin/keuangan', 'icon' => 'fa-coins', 'label' => 'Anggaran dan Realisasi', 'module' => 'budget_transparency', 'any' => array('finance.manage', 'finance.verify', 'finance.publish')),
 	)),
 	array('heading' => 'Aset dan Persediaan', 'items' => array(
-		array('key' => 'aset', 'url' => 'admin/aset', 'icon' => 'fa-boxes-stacked fa-box', 'label' => 'Aset dan QR', 'module' => 'assets', 'all' => array('assets.view')),
+		array('key' => 'aset', 'url' => 'admin/inventaris', 'icon' => 'fa-boxes-stacked fa-box', 'label' => 'Inventaris Desa', 'module' => 'assets', 'all' => array('assets.view')),
 		array('key' => 'audit-aset', 'url' => 'admin/audit-aset', 'icon' => 'fa-clipboard-check', 'label' => 'Audit Aset', 'module' => 'assets', 'any' => array('asset_audits.create', 'asset_audits.perform', 'asset_audits.verify')),
 		array('key' => 'gudang', 'url' => 'admin/gudang', 'icon' => 'fa-warehouse', 'label' => 'Gudang Persediaan', 'module' => 'warehouse', 'all' => array('warehouse.view')),
 	)),

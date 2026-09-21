@@ -30,6 +30,12 @@ class Aset extends Admin_Controller {
 	public function index()
 	{
 		$this->require_permission('assets.view');
+		// Pekerjaan sehari-hari ada di Inventaris Desa; halaman register tetap tersedia sebagai mode lanjutan.
+		if ($this->input->get('lanjutan') === NULL)
+		{
+			redirect(site_url('admin/inventaris'), 'location', 303);
+			return;
+		}
 		$this->render('admin/aset_index', $this->asset_assets(array(
 			'page_title' => 'Aset dan QR',
 			'registers' => $this->assets->registers(array(
@@ -74,6 +80,11 @@ class Aset extends Admin_Controller {
 	{
 		$this->require_permission('assets.view');
 		$unit = $this->require_unit($public_id);
+		if ($this->input->get('lanjutan') === NULL)
+		{
+			redirect(site_url('admin/inventaris/'.rawurlencode($unit->public_id)), 'location', 303);
+			return;
+		}
 		$register = $this->db->get_where('asset_registers', array('id' => (int) $unit->register_id))->row();
 		$token = $this->assets->active_token($unit);
 		$this->render('admin/aset_unit', $this->asset_assets(array(

@@ -156,10 +156,11 @@ class AssetHttpTest extends HttpTestCase {
 		$this->make_user('pengurus.aset.test', array('asset_manager'), 'active');
 
 		$this->login('editor.aset.test', self::PASSWORD, 'editor');
-		$this->assertSame(403, $this->get('admin/aset', 'editor')['status']);
+		$this->assertSame(403, $this->get('admin/inventaris', 'editor')['status']);
 
 		$this->login('pengurus.aset.test', self::PASSWORD, 'manager');
-		$listing = $this->get('admin/aset', 'manager');
+		$this->assertSame(303, $this->get('admin/aset', 'manager')['status'], 'Halaman aset lama diarahkan ke Inventaris');
+		$listing = $this->get('admin/inventaris', 'manager');
 		$this->assertSame(200, $listing['status']);
 		// Pengurus aset pada preset ini tidak memegang izin nilai keuangan.
 		$this->assertStringNotContainsString('17.500.000', $listing['body']);
@@ -173,12 +174,12 @@ class AssetHttpTest extends HttpTestCase {
 		$register = $this->CI->db->where('legacy_asset_code', 'UJI-HTTP-01')->get('asset_registers')->row();
 		$draft = $this->CI->assets->create_unit($register, array('asset_tag' => 'UJI-HTTP-01-003'), (int) $actor->id);
 
-		$unit_page = $this->get('admin/aset/unit/'.$this->unit->public_id, 'label');
+		$unit_page = $this->get('admin/inventaris/'.$this->unit->public_id, 'label');
 		$this->assertSame(200, $unit_page['status']);
 		$this->assertStringContainsString('aset/q/'.$this->token.'"', $unit_page['body'],
 			'QR aktif selalu dapat ditampilkan lagi di halaman unit');
 
-		$register_path = 'admin/aset/'.$register->public_id;
+		$register_path = 'admin/aset/'.$register->public_id.'?lanjutan=1';
 		$this->assertStringContainsString('Cetak QR semua unit', $this->get($register_path, 'label')['body']);
 		$created = $this->post_form($register_path, 'admin/aset/label', array('register' => $register->public_id), 'label');
 		$this->assertSame(303, $created['status']);

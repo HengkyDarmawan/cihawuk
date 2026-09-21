@@ -187,3 +187,11 @@ div.dataTables_wrapper div.dataTables_processing { border-radius: 12px; }
 .qr-box svg { display: block; width: 100%; height: 100%; }
 .card-header-tabs .nav-link { font-weight: 700; color: var(--chw-muted); }
 .card-header-tabs .nav-link.active { color: var(--chw-primary); }
+
+/* === Inventaris Desa: timeline riwayat === */
+.inv-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+.inv-timeline::before { content: ""; position: absolute; left: 17px; top: 4px; bottom: 4px; width: 2px; background: var(--chw-border, #e3e6f0); }
+.inv-timeline li { position: relative; display: flex; gap: 14px; padding-bottom: 16px; }
+.inv-timeline li:last-child { padding-bottom: 0; }
+.inv-timeline-icon { position: relative; z-index: 1; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: .85rem; box-shadow: 0 0 0 4px #fff; }
+.inv-timeline-body { padding-top: 6px; min-width: 0; }

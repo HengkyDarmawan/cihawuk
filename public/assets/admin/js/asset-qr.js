@@ -17,10 +17,32 @@
 		el.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
 	});
 
+	/* Modal QR dari daftar inventaris: tombol [data-qr-show] mengisi #qr-modal. */
+	var $ = window.jQuery;
+	document.querySelectorAll('[data-qr-show]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var box = document.getElementById('qr-modal-box');
+			var qr = makeQr(btn.getAttribute('data-qr-show'));
+			if (!box || !qr) { return; }
+			box.setAttribute('data-qr', btn.getAttribute('data-qr-show'));
+			box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+			var code = btn.getAttribute('data-qr-code') || '';
+			var set = function (id, text) { var el = document.getElementById(id); if (el) { el.textContent = text; } };
+			set('qr-modal-code', code);
+			set('qr-modal-name', btn.getAttribute('data-qr-name') || '');
+			var unit = document.getElementById('qr-modal-unit');
+			if (unit) { unit.value = btn.getAttribute('data-qr-unit') || ''; }
+			var detail = document.getElementById('qr-modal-detail');
+			if (detail) { detail.href = btn.getAttribute('data-qr-detail') || '#'; }
+			document.querySelectorAll('#qr-modal [data-qr-download]').forEach(function (d) { d.setAttribute('data-qr-download', code); });
+			if ($ && $.fn && $.fn.modal) { $('#qr-modal').modal('show'); }
+		});
+	});
+
 	/* Unduh PNG: QR + kode aset di bawahnya, siap ditempel ke dokumen atau dicetak sendiri. */
 	document.querySelectorAll('[data-qr-download]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
-			var box = document.querySelector('[data-qr]');
+			var box = document.querySelector(btn.getAttribute('data-qr-source') || '[data-qr]');
 			var qr = box ? makeQr(box.getAttribute('data-qr')) : null;
 			if (!qr) { return; }
 			var caption = btn.getAttribute('data-qr-download') || '';

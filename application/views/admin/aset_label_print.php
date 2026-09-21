@@ -16,19 +16,19 @@ $missing = count(array_filter($items, function ($item) { return $item['url'] ===
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
-	<title>Label QR aset — <?= count($labels) ?> label</title>
+	<title>Label QR inventaris — <?= count($labels) ?> label</title>
 	<link rel="stylesheet" href="<?= asset_url('admin/css/asset-labels.css') ?>">
 </head>
 <body class="label-page">
 	<header class="label-toolbar">
 		<div>
 			<strong>Label QR aset</strong> · <?= count($labels) ?> label · dibuat <?= e(format_wib($batch->created_at, 'short')) ?>
-			<?php if ($missing): ?><div class="label-warning"><?= (int) $missing ?> unit QR-nya sudah dicabut/diganti sejak batch ini dibuat dan tidak dicetak. Buat batch baru dari halaman register.</div><?php endif; ?>
+			<?php if ($missing): ?><div class="label-warning"><?= (int) $missing ?> unit QR-nya sudah dicabut/diganti sejak batch ini dibuat dan tidak dicetak. Cetak ulang dari halaman Inventaris.</div><?php endif; ?>
 			<div class="label-hint">Gunakan kertas A4 (label 3 x 8). Pada dialog cetak pilih skala 100% / "Actual size" dan matikan header-footer.</div>
 		</div>
 		<div class="label-toolbar-actions">
 			<button type="button" class="label-btn label-btn-primary" data-print>Cetak sekarang</button>
-			<a class="label-btn" href="<?= site_url('admin/aset') ?>">Kembali ke Aset</a>
+			<a class="label-btn" href="<?= site_url('admin/inventaris') ?>">Kembali ke Inventaris</a>
 		</div>
 	</header>
 

@@ -222,6 +222,16 @@ $route['admin/gudang/opname/(:any)/hitung']['POST'] = 'admin/gudang/count_line/$
 $route['admin/gudang/opname/(:any)/tutup']['POST'] = 'admin/gudang/close_stocktake/$1';
 
 // Aset, unit fisik, QR, dan audit fisik.
+// Inventaris Desa: layar sederhana di atas modul aset (satu barang = satu unit dengan QR).
+$route['admin/inventaris']['GET'] = 'admin/inventaris/index';
+$route['admin/inventaris/tambah']['GET'] = 'admin/inventaris/create';
+$route['admin/inventaris/tambah']['POST'] = 'admin/inventaris/store';
+$route['admin/inventaris/cetak-qr']['POST'] = 'admin/inventaris/print_qr';
+$route['admin/inventaris/(:any)/ubah']['GET'] = 'admin/inventaris/edit/$1';
+$route['admin/inventaris/(:any)/ubah']['POST'] = 'admin/inventaris/update/$1';
+$route['admin/inventaris/(:any)/(:any)']['POST'] = 'admin/inventaris/action/$1/$2';
+$route['admin/inventaris/(:any)']['GET'] = 'admin/inventaris/show/$1';
+
 $route['admin/aset']['GET'] = 'admin/aset/index';
 $route['admin/aset/register']['POST'] = 'admin/aset/create_register';
 $route['admin/aset/kategori']['POST'] = 'admin/aset/save_category';

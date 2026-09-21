@@ -644,7 +644,7 @@ class MasterSeeder extends Seeder {
 			array('organization', 'Struktur organisasi', 'active', array(), 'pemerintahan', 'admin/struktur'),
 			array('facilities', 'Direktori fasilitas', 'active', array('village_data'), 'fasilitas', 'admin/fasilitas'),
 			array('budget_transparency', 'Transparansi anggaran', 'active', array('public_website'), 'transparansi', 'admin/keuangan'),
-			array('assets', 'Aset dan inventaris', 'active', array(), NULL, 'admin/aset,admin/audit-aset'),
+			array('assets', 'Aset dan inventaris', 'active', array(), NULL, 'admin/aset,admin/inventaris,admin/audit-aset'),
 			array('public_asset_qr', 'Halaman publik QR aset', 'active', array('assets'), 'aset', NULL),
 			array('warehouse', 'Gudang persediaan', 'active', array(), NULL, 'admin/gudang'),
 			array('umkm_directory', 'Direktori UMKM', 'active', array('village_potentials'), 'umkm', 'admin/umkm'),
