@@ -1,3 +1,14 @@
-# Lapisan pertahanan tambahan: root proyek tidak boleh dilayani web.
-# Akses aplikasi hanya melalui virtual host yang DocumentRoot-nya folder public/.
-Require all denied
+# Fallback bila DocumentRoot menunjuk ke root proyek (mis. subdomain shared hosting).
+# Seluruh request dipetakan ke public/, sehingga application/, system/, vendor/,
+# storage/ dan .env tidak pernah dilayani langsung. Virtual host yang DocumentRoot-nya
+# folder public/ tidak membaca file ini.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
