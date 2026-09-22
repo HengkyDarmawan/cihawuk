@@ -13,7 +13,7 @@ $cards = array(
 		<h1>Inventaris Desa</h1>
 		<p>Setiap barang punya kode dan QR sendiri. Klik nama barang untuk melihat QR, riwayat, dan mencatat perubahan.</p>
 	</div>
-	<div class="d-flex flex-wrap asset-actions">
+	<div class="page-actions asset-actions">
 		<?php if ($can_labels && ! empty($items)): ?>
 		<form method="post" action="<?= site_url('admin/inventaris/cetak-qr') ?>" target="_blank">
 			<?= csrf_field() ?>
@@ -22,7 +22,7 @@ $cards = array(
 		</form>
 		<?php endif; ?>
 		<?php if ($can_create): ?>
-		<a class="btn btn-primary" href="<?= site_url('admin/inventaris/tambah') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Tambah Barang</a>
+		<a class="btn btn-primary btn-add" href="<?= site_url('admin/inventaris/tambah') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Tambah Barang</a>
 		<?php endif; ?>
 	</div>
 </div>

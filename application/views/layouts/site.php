@@ -24,6 +24,7 @@ $extra_js = isset($extra_js) ? (array) $extra_js : array();
 	<?php if ($social_image): ?><meta property="og:image" content="<?= e($social_image) ?>"><?php endif; ?>
 	<link rel="preload" href="<?= base_url('assets/vendor/fonts/manrope/manrope-latin-400.woff2') ?>" as="font" type="font/woff2" crossorigin>
 	<link rel="stylesheet" href="<?= asset_url('vendor/bootstrap5/css/bootstrap.min.css') ?>">
+	<link rel="stylesheet" href="<?= asset_url('vendor/sweetalert2/sweetalert2.min.css') ?>">
 	<?php foreach ($extra_css as $css): ?><link rel="stylesheet" href="<?= asset_url($css) ?>"><?php endforeach; ?>
 	<link rel="stylesheet" href="<?= asset_url('site/css/site.css') ?>">
 	<?php if ($favicon): ?>
@@ -69,7 +70,8 @@ $extra_js = isset($extra_js) ? (array) $extra_js : array();
 	<main id="konten" tabindex="-1">
 		<?php if ( ! empty($flash) && is_array($flash)): ?>
 		<div class="container-site pt-4">
-			<div class="alert alert-<?= e($flash['type'] === 'error' ? 'danger' : $flash['type']) ?> d-flex gap-2 align-items-start" role="<?= $flash['type'] === 'error' ? 'alert' : 'status' ?>">
+			<?php // Sukses/info tampil sebagai toast SweetAlert2 (site.js); alert ini tetap untuk galat dan tanpa JS. ?>
+			<div class="alert alert-<?= e($flash['type'] === 'error' ? 'danger' : $flash['type']) ?> d-flex gap-2 align-items-start" role="<?= $flash['type'] === 'error' ? 'alert' : 'status' ?>" data-flash data-type="<?= e($flash['type']) ?>" data-message="<?= e($flash['message']) ?>">
 				<?= icon($flash['type'] === 'success' ? 'check-circle' : ($flash['type'] === 'error' ? 'alert-octagon' : 'info')) ?>
 				<div><?= e($flash['message']) ?></div>
 			</div>
@@ -81,7 +83,8 @@ $extra_js = isset($extra_js) ? (array) $extra_js : array();
 	<?php $this->load->view('partials/site_footer', array('footer_items' => $footer_items ?? array(), 'village' => $village ?? NULL, 'site_settings' => $site_settings ?? array())); ?>
 
 	<script src="<?= asset_url('vendor/bootstrap5/js/bootstrap.bundle.min.js') ?>" defer></script>
-	<?php foreach ($extra_js as $js): ?><script src="<?= asset_url($js) ?>" defer></script><?php endforeach; ?>
+	<script src="<?= asset_url('vendor/sweetalert2/sweetalert2.min.js') ?>" defer></script>
+	<?php foreach (array_diff($extra_js, array('vendor/sweetalert2/sweetalert2.min.js')) as $js): ?><script src="<?= asset_url($js) ?>" defer></script><?php endforeach; ?>
 	<script src="<?= asset_url('site/js/site.js') ?>" defer></script>
 </body>
 </html>

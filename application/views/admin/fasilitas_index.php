@@ -24,7 +24,7 @@
 <?= ui_error_summary($this->form_errors) ?>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Fasilitas</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Fasilitas</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-fasilitas', 'Tambah fasilitas') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Nama</th><th scope="col">Kategori</th><th scope="col">Status</th><th scope="col">Belum siap terbit</th></tr></thead>
@@ -48,24 +48,10 @@
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah fasilitas</h3>
-		<form method="post" action="<?= site_url('admin/fasilitas/buat') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_input(array('name' => 'name', 'label' => 'Nama fasilitas', 'maxlength' => 200, 'required' => TRUE)) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'category', 'label' => 'Kategori', 'options' => $categories, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'address', 'label' => 'Alamat', 'maxlength' => 400)) ?></div>
-			</div>
-			<button class="btn btn-primary" type="submit">Buat draft</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="card shadow-sm">
-	<div class="card-header"><h2 class="h6 mb-0">Lokasi publik</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Lokasi publik</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-lokasi', 'Tambah lokasi') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Nama</th><th scope="col">Jenis</th><th scope="col">Koordinat</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead>
@@ -92,28 +78,37 @@
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah lokasi</h3>
-		<form method="post" action="<?= site_url('admin/fasilitas/lokasi/simpan') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_input(array('name' => 'name', 'label' => 'Nama lokasi', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'place_type', 'label' => 'Jenis', 'options' => $place_types, 'required' => TRUE)) ?></div>
-				<div class="col-md-5"><?= ui_input(array('name' => 'address', 'label' => 'Alamat', 'maxlength' => 400)) ?></div>
-			</div>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_input(array('name' => 'latitude', 'label' => 'Lintang')) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'longitude', 'label' => 'Bujur')) ?></div>
-				<div class="col-md-6 d-flex align-items-center">
-					<div class="form-check mt-3">
-						<input class="form-check-input" type="checkbox" id="is_sensitive" name="is_sensitive" value="1">
-						<label class="form-check-label" for="is_sensitive">Lokasi sensitif (tidak ditampilkan di peta publik)</label>
-					</div>
-				</div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan lokasi</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can_edit): ?>
+<?= ui_modal_open('modal-tambah-fasilitas', 'Tambah fasilitas') ?>
+	<form method="post" action="<?= site_url('admin/fasilitas/buat') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'name', 'id' => 'facility_name', 'label' => 'Nama fasilitas', 'maxlength' => 200, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'category', 'label' => 'Kategori', 'options' => $categories, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'address', 'id' => 'facility_address', 'label' => 'Alamat', 'maxlength' => 400)) ?>
+		<p class="small text-muted mb-0">Fasilitas dibuat sebagai draft; lengkapi detailnya di halaman berikutnya.</p>
+		<?= ui_modal_actions('Buat draft') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-lokasi', 'Tambah lokasi', 'modal-lg') ?>
+	<form method="post" action="<?= site_url('admin/fasilitas/lokasi/simpan') ?>" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-md-7"><?= ui_input(array('name' => 'name', 'id' => 'place_name', 'label' => 'Nama lokasi', 'maxlength' => 180, 'required' => TRUE)) ?></div>
+			<div class="col-md-5"><?= ui_select(array('name' => 'place_type', 'label' => 'Jenis', 'options' => $place_types, 'required' => TRUE)) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'address', 'id' => 'place_address', 'label' => 'Alamat', 'maxlength' => 400)) ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'latitude', 'label' => 'Lintang')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'longitude', 'label' => 'Bujur')) ?></div>
+		</div>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="is_sensitive" name="is_sensitive" value="1">
+			<label class="form-check-label" for="is_sensitive">Lokasi sensitif (tidak ditampilkan di peta publik)</label>
+		</div>
+		<?= ui_modal_actions('Simpan lokasi') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

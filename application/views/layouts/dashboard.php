@@ -48,6 +48,7 @@ else
 	<title><?= e($title) ?></title>
 	<link rel="stylesheet" href="<?= asset_url('vendor/fontawesome/css/all.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_url('vendor/sb-admin-2/css/sb-admin-2.min.css') ?>">
+	<link rel="stylesheet" href="<?= asset_url('vendor/sweetalert2/sweetalert2.min.css') ?>">
 	<?php foreach ($extra_css as $css): ?><link rel="stylesheet" href="<?= asset_url($css) ?>"><?php endforeach; ?>
 	<link rel="stylesheet" href="<?= asset_url('admin/css/dashboard.css') ?>">
 	<link rel="icon" href="<?= base_url('assets/site/img/favicon.svg') ?>" type="image/svg+xml">
@@ -149,10 +150,12 @@ else
 
 				<main class="container-fluid" id="konten" tabindex="-1">
 					<?php if ( ! empty($flash) && is_array($flash)): ?>
-					<div class="alert alert-<?= e($flash['type'] === 'error' ? 'danger' : $flash['type']) ?> alert-dismissible fade show" role="<?= $flash['type'] === 'error' ? 'alert' : 'status' ?>">
+					<?php // Ditampilkan sebagai toast/popup SweetAlert2 oleh dashboard.js; alert biasa bila JS tidak jalan. ?>
+					<div class="alert alert-<?= e($flash['type'] === 'error' ? 'danger' : $flash['type']) ?> alert-dismissible" role="<?= $flash['type'] === 'error' ? 'alert' : 'status' ?>" data-flash data-type="<?= e($flash['type']) ?>" data-message="<?= e($flash['message']) ?>" hidden>
 						<?= e($flash['message']) ?>
 						<button type="button" class="close" data-dismiss="alert" aria-label="Tutup pesan"><span aria-hidden="true">&times;</span></button>
 					</div>
+					<noscript><div class="alert alert-<?= e($flash['type'] === 'error' ? 'danger' : $flash['type']) ?>"><?= e($flash['message']) ?></div></noscript>
 					<?php endif; ?>
 					<?= $content ?>
 				</main>
@@ -172,7 +175,8 @@ else
 	<script src="<?= asset_url('vendor/bootstrap4/js/bootstrap.bundle.min.js') ?>"></script>
 	<script src="<?= asset_url('vendor/jquery-easing/jquery.easing.min.js') ?>"></script>
 	<script src="<?= asset_url('vendor/sb-admin-2/js/sb-admin-2.min.js') ?>"></script>
-	<?php foreach ($extra_js as $js): ?><script src="<?= asset_url($js) ?>"></script><?php endforeach; ?>
+	<script src="<?= asset_url('vendor/sweetalert2/sweetalert2.min.js') ?>"></script>
+	<?php foreach (array_diff($extra_js, array('vendor/sweetalert2/sweetalert2.min.js')) as $js): ?><script src="<?= asset_url($js) ?>"></script><?php endforeach; ?>
 	<script src="<?= asset_url('admin/js/dashboard.js') ?>"></script>
 </body>
 </html>

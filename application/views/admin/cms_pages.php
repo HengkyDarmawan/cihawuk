@@ -11,12 +11,13 @@ $status_labels = array(
 		<h1>Halaman Publik</h1>
 		<p>Halaman disusun dari section yang disediakan; frontend hanya membaca versi yang sudah diterbitkan.</p>
 	</div>
+	<?php if ($can('cms.page.create')): ?><div class="page-actions"><?= ui_add_button('modal-halaman-baru', 'Halaman baru') ?></div><?php endif; ?>
 </div>
 
 <?= ui_error_summary($this->form_errors) ?>
 
 <div class="row">
-	<div class="col-lg-8">
+	<div class="col-12">
 		<div class="card shadow-sm">
 			<div class="table-responsive">
 				<table class="table table-sm mb-0">
@@ -46,20 +47,18 @@ $status_labels = array(
 		</div>
 	</div>
 
-	<?php if ($can('cms.page.create')): ?>
-	<div class="col-lg-4">
-		<form class="card shadow-sm" method="post" action="<?= site_url('admin/cms/halaman/buat') ?>" data-once>
-			<div class="card-header"><h2 class="h6 mb-0">Halaman baru</h2></div>
-			<div class="card-body">
-				<?= csrf_field() ?>
-				<?= ui_input(array('name' => 'page_key', 'label' => 'Kunci halaman', 'required' => TRUE, 'maxlength' => 60,
-					'help' => 'Huruf kecil, angka, dan garis bawah. Tidak berubah walaupun slug diganti.')) ?>
-				<?= ui_input(array('name' => 'title', 'label' => 'Judul halaman', 'required' => TRUE, 'maxlength' => 180)) ?>
-				<?= ui_input(array('name' => 'slug', 'label' => 'Slug URL', 'maxlength' => 180, 'help' => 'Dibuat dari judul bila dikosongkan.')) ?>
-				<?= ui_select(array('name' => 'template_code', 'label' => 'Template', 'options' => $templates, 'value' => 'page.standard')) ?>
-			</div>
-			<div class="card-footer bg-white text-right"><button class="btn btn-primary btn-sm" type="submit">Buat draft</button></div>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can('cms.page.create')): ?>
+<?= ui_modal_open('modal-halaman-baru', 'Halaman baru') ?>
+	<form method="post" action="<?= site_url('admin/cms/halaman/buat') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'page_key', 'label' => 'Kunci halaman', 'required' => TRUE, 'maxlength' => 60,
+			'help' => 'Huruf kecil, angka, dan garis bawah. Tidak berubah walaupun slug diganti.')) ?>
+		<?= ui_input(array('name' => 'title', 'label' => 'Judul halaman', 'required' => TRUE, 'maxlength' => 180)) ?>
+		<?= ui_input(array('name' => 'slug', 'label' => 'Slug URL', 'maxlength' => 180, 'help' => 'Dibuat dari judul bila dikosongkan.')) ?>
+		<?= ui_select(array('name' => 'template_code', 'label' => 'Template', 'options' => $templates, 'value' => 'page.standard')) ?>
+		<?= ui_modal_actions('Buat draft') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

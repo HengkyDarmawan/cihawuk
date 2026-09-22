@@ -4,23 +4,11 @@
 		<h1>Daftar izin</h1>
 		<p>Izin bawaan dipakai langsung oleh kode aplikasi, jadi hanya deskripsinya yang dapat diubah. Izin buatan dapat dihapus selama tidak dipegang role mana pun.</p>
 	</div>
+	<div class="page-actions"><?= ui_add_button('modal-tambah-izin', 'Tambah izin') ?></div>
 </div>
 
 <?php $this->load->view('admin/rbac_tabs', array('tab' => $tab)); ?>
 <?= ui_error_summary() ?>
-
-<div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Tambah izin</h2></div>
-	<div class="card-body">
-		<form method="post" action="<?= site_url('admin/rbac/izin') ?>" class="form-row align-items-end" data-once>
-			<?= csrf_field() ?>
-			<div class="col-md-4"><?= ui_input(array('name' => 'code', 'label' => 'Kode', 'required' => TRUE, 'maxlength' => 60, 'placeholder' => 'arsip.lihat')) ?></div>
-			<div class="col-md-6"><?= ui_input(array('name' => 'description', 'label' => 'Deskripsi', 'required' => TRUE, 'maxlength' => 255)) ?></div>
-			<div class="col-md-2 mb-3"><button class="btn btn-primary btn-block" type="submit">Tambah</button></div>
-		</form>
-		<p class="small text-muted mb-0">Izin baru tidak otomatis membuka fitur apa pun; ia berarti setelah dipakai oleh kode atau oleh aturan menu.</p>
-	</div>
-</div>
 
 <?php foreach ($groups as $prefix => $perms): ?>
 <div class="card shadow-sm mb-3">
@@ -56,3 +44,13 @@
 	</div>
 </div>
 <?php endforeach; ?>
+
+<?= ui_modal_open('modal-tambah-izin', 'Tambah izin') ?>
+	<form method="post" action="<?= site_url('admin/rbac/izin') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'code', 'label' => 'Kode', 'required' => TRUE, 'maxlength' => 60, 'placeholder' => 'arsip.lihat')) ?>
+		<?= ui_input(array('name' => 'description', 'label' => 'Deskripsi', 'required' => TRUE, 'maxlength' => 255)) ?>
+		<p class="small text-muted mb-0">Izin baru tidak otomatis membuka fitur apa pun; ia berarti setelah dipakai oleh kode atau oleh aturan menu.</p>
+		<?= ui_modal_actions('Tambah') ?>
+	</form>
+<?= ui_modal_close() ?>

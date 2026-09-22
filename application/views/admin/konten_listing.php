@@ -8,9 +8,9 @@ $page_url = function ($n) use ($type, $filters) {
 		<h1><?= strip_tags($schema['label']) ?></h1>
 		<p><?= (int) $total ?> item.</p>
 	</div>
-	<div>
-		<a class="btn btn-outline-primary mr-2" href="<?= site_url('admin/konten') ?>">Semua konten</a>
-		<a class="btn btn-primary" href="<?= site_url('admin/konten/'.$type.'/buat') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Buat <?= e(strtolower($schema['singular'])) ?></a>
+	<div class="page-actions">
+		<a class="btn btn-outline-primary" href="<?= site_url('admin/konten') ?>">Semua konten</a>
+		<a class="btn btn-primary btn-add" href="<?= site_url('admin/konten/'.$type.'/buat') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Buat <?= e(strtolower($schema['singular'])) ?></a>
 	</div>
 </div>
 

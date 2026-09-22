@@ -16,7 +16,7 @@ $batch_status = array('ready' => 'Siap cetak', 'printed' => 'Sudah dibuka untuk 
 		<p>Satu register = satu jenis barang. Di dalamnya ada unit fisik yang diberi label QR.</p>
 	</div>
 	<?php if ($can_create): ?>
-	<div><a class="btn btn-primary btn-sm" href="#tambah-register"><i class="fas fa-plus fa-sm mr-1" aria-hidden="true"></i> Tambah register</a></div>
+	<div class="page-actions"><?= ui_add_button('tambah-register', 'Tambah register') ?></div>
 	<?php endif; ?>
 </div>
 
@@ -79,21 +79,6 @@ $batch_status = array('ready' => 'Siap cetak', 'printed' => 'Sudah dibuka untuk 
 			</table>
 		</div>
 	</div>
-	<?php if ($can_create): ?>
-	<div class="card-body border-top" id="tambah-register">
-		<h3 class="h6 font-weight-bold">Tambah register</h3>
-		<form method="post" action="<?= site_url('admin/aset/register') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_input(array('name' => 'name', 'label' => 'Nama barang', 'maxlength' => 220, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'category_id', 'label' => 'Kategori', 'options' => array_slice($category_options, 1, NULL, TRUE), 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'legacy_asset_code', 'label' => 'Kode lama', 'maxlength' => 60)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'source_volume_raw', 'label' => 'Jumlah di dokumen', 'maxlength' => 120, 'help' => 'Contoh: 2 Unit')) ?></div>
-			</div>
-			<button class="btn btn-primary" type="submit">Buat register</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="row">
@@ -108,18 +93,6 @@ $batch_status = array('ready' => 'Siap cetak', 'printed' => 'Sudah dibuka untuk 
 					<?php if (empty($categories)): ?><span class="text-muted">Belum ada kategori.</span><?php endif; ?>
 				</div>
 			</div>
-			<?php if ($can_create): ?>
-			<div class="card-body border-top">
-				<form method="post" action="<?= site_url('admin/aset/kategori') ?>" data-once>
-					<?= csrf_field() ?>
-					<div class="form-row align-items-end">
-						<div class="col-4"><?= ui_input(array('name' => 'code', 'id' => 'cat_code', 'label' => 'Kode', 'maxlength' => 40, 'required' => TRUE)) ?></div>
-						<div class="col-8"><?= ui_input(array('name' => 'name', 'id' => 'cat_name', 'label' => 'Nama kategori', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-					</div>
-					<button class="btn btn-outline-primary btn-sm" type="submit">Simpan kategori</button>
-				</form>
-			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 	<div class="col-lg-6 mb-4">
@@ -134,22 +107,6 @@ $batch_status = array('ready' => 'Siap cetak', 'printed' => 'Sudah dibuka untuk 
 					<?php if (empty($locations)): ?><span class="text-muted">Belum ada lokasi.</span><?php endif; ?>
 				</div>
 			</div>
-			<?php if ($can_create): ?>
-			<div class="card-body border-top">
-				<form method="post" action="<?= site_url('admin/aset/lokasi') ?>" data-once>
-					<?= csrf_field() ?>
-					<div class="form-row align-items-end">
-						<div class="col-4"><?= ui_input(array('name' => 'code', 'id' => 'loc_code', 'label' => 'Kode', 'maxlength' => 40, 'required' => TRUE)) ?></div>
-						<div class="col-8"><?= ui_input(array('name' => 'name', 'id' => 'loc_name', 'label' => 'Nama lokasi', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-					</div>
-					<div class="custom-control custom-checkbox mb-2">
-						<input class="custom-control-input" type="checkbox" id="loc_sensitive" name="is_sensitive" value="1">
-						<label class="custom-control-label font-weight-normal" for="loc_sensitive">Lokasi sensitif (tidak tampil di halaman QR publik)</label>
-					</div>
-					<button class="btn btn-outline-primary btn-sm" type="submit">Simpan lokasi</button>
-				</form>
-			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 </div>
@@ -174,4 +131,41 @@ $batch_status = array('ready' => 'Siap cetak', 'printed' => 'Sudah dibuka untuk 
 		</table>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if ($can_create): ?>
+<?= ui_modal_open('tambah-register', 'Tambah register', 'modal-lg') ?>
+	<form method="post" action="<?= site_url('admin/aset/register') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'name', 'label' => 'Nama barang', 'maxlength' => 220, 'required' => TRUE)) ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_select(array('name' => 'category_id', 'label' => 'Kategori', 'options' => array_slice($category_options, 1, NULL, TRUE), 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'legacy_asset_code', 'label' => 'Kode lama', 'maxlength' => 60)) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'source_volume_raw', 'label' => 'Jumlah di dokumen', 'maxlength' => 120, 'help' => 'Contoh: 2 Unit')) ?>
+		<?= ui_modal_actions('Buat register') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-kategori', 'Tambah kategori') ?>
+	<form method="post" action="<?= site_url('admin/aset/kategori') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'code', 'id' => 'cat_code', 'label' => 'Kode', 'maxlength' => 40, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'name', 'id' => 'cat_name', 'label' => 'Nama kategori', 'maxlength' => 180, 'required' => TRUE)) ?>
+		<?= ui_modal_actions('Simpan kategori') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-lokasi', 'Tambah lokasi') ?>
+	<form method="post" action="<?= site_url('admin/aset/lokasi') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'code', 'id' => 'loc_code', 'label' => 'Kode', 'maxlength' => 40, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'name', 'id' => 'loc_name', 'label' => 'Nama lokasi', 'maxlength' => 180, 'required' => TRUE)) ?>
+		<div class="custom-control custom-checkbox">
+			<input class="custom-control-input" type="checkbox" id="loc_sensitive" name="is_sensitive" value="1">
+			<label class="custom-control-label font-weight-normal" for="loc_sensitive">Lokasi sensitif (tidak tampil di halaman QR publik)</label>
+		</div>
+		<?= ui_modal_actions('Simpan lokasi') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>

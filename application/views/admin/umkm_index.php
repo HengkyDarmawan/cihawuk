@@ -6,6 +6,7 @@
 		<h1>Direktori UMKM</h1>
 		<p>Profil usaha hanya boleh terbit setelah pemiliknya menyetujui dan persetujuannya dicatat.</p>
 	</div>
+	<?php if ($can_edit): ?><div class="page-actions"><?= ui_add_button('modal-tambah-usaha', 'Tambah usaha') ?></div><?php endif; ?>
 </div>
 
 <?= ui_error_summary($this->form_errors) ?>
@@ -42,18 +43,17 @@
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah usaha</h3>
-		<form method="post" action="<?= site_url('admin/umkm/buat') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_input(array('name' => 'name', 'label' => 'Nama usaha', 'maxlength' => 200, 'required' => TRUE)) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'category', 'label' => 'Kategori', 'options' => $categories, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'owner_name', 'label' => 'Pemilik', 'maxlength' => 180)) ?></div>
-			</div>
-			<button class="btn btn-primary" type="submit">Buat draft</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can_edit): ?>
+<?= ui_modal_open('modal-tambah-usaha', 'Tambah usaha') ?>
+	<form method="post" action="<?= site_url('admin/umkm/buat') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'name', 'label' => 'Nama usaha', 'maxlength' => 200, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'category', 'label' => 'Kategori', 'options' => $categories, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'owner_name', 'label' => 'Pemilik', 'maxlength' => 180)) ?>
+		<p class="small text-muted mb-0">Usaha dibuat sebagai draft; lengkapi profil dan persetujuan pemilik di halaman berikutnya.</p>
+		<?= ui_modal_actions('Buat draft') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

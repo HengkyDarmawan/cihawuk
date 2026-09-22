@@ -51,9 +51,9 @@ $action = site_url('admin/dataset/'.rawurlencode($dataset->public_id));
 		</form>
 
 		<div class="card shadow-sm mb-4">
-			<div class="card-header d-flex justify-content-between align-items-center">
-				<h2 class="h6 mb-0">Indikator dan nilai</h2>
-				<span class="small text-muted"><?= count($series) ?> indikator · tahun <?= $version ? (int) $version->period_year : '—' ?></span>
+			<div class="card-header card-header-actions">
+				<h2 class="h6 mb-0">Indikator dan nilai <span class="small text-muted font-weight-normal">· <?= count($series) ?> indikator · tahun <?= $version ? (int) $version->period_year : '—' ?></span></h2>
+				<?php if ($can('data.review')): ?><?= ui_add_button('modal-tambah-indikator', 'Tambah indikator') ?><?php endif; ?>
 			</div>
 			<?php if (empty($series)): ?>
 				<div class="card-body empty-box"><i class="fas fa-chart-column fa-chart-bar" aria-hidden="true"></i><p class="mb-0">Belum ada indikator pada dataset ini.</p></div>
@@ -120,26 +120,6 @@ $action = site_url('admin/dataset/'.rawurlencode($dataset->public_id));
 			</div>
 			<?php endif; ?>
 
-			<?php if ($can('data.review')): ?>
-			<div class="card-footer bg-white">
-				<form method="post" action="<?= $action ?>/seri/tambah" class="form-inline">
-					<?= csrf_field() ?>
-					<label class="sr-only" for="indicator_id">Indikator</label>
-					<select class="form-control form-control-sm form-select mr-2" id="indicator_id" name="indicator_id">
-						<?php foreach ($indicator_options as $id => $label): ?>
-							<option value="<?= e($id) ?>"><?= e($label) ?></option>
-						<?php endforeach; ?>
-					</select>
-					<label class="sr-only" for="chart_type">Jenis grafik</label>
-					<select class="form-control form-control-sm form-select mr-2" id="chart_type" name="chart_type">
-						<?php foreach ($chart_types as $code => $label): ?>
-							<option value="<?= e($code) ?>"><?= e($label) ?></option>
-						<?php endforeach; ?>
-					</select>
-					<button class="btn btn-outline-primary btn-sm" type="submit">Tambah indikator</button>
-				</form>
-			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 
@@ -252,3 +232,28 @@ $action = site_url('admin/dataset/'.rawurlencode($dataset->public_id));
 		</div>
 	</div>
 </div>
+
+<?php if ($can('data.review')): ?>
+<?= ui_modal_open('modal-tambah-indikator', 'Tambah indikator') ?>
+	<form method="post" action="<?= $action ?>/seri/tambah">
+		<?= csrf_field() ?>
+		<div class="form-group">
+			<label for="indicator_id">Indikator</label>
+			<select class="form-control form-select" id="indicator_id" name="indicator_id">
+				<?php foreach ($indicator_options as $id => $label): ?>
+					<option value="<?= e($id) ?>"><?= e($label) ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<div class="form-group mb-0">
+			<label for="chart_type">Jenis grafik</label>
+			<select class="form-control form-select" id="chart_type" name="chart_type">
+				<?php foreach ($chart_types as $code => $label): ?>
+					<option value="<?= e($code) ?>"><?= e($label) ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<?= ui_modal_actions('Tambah indikator') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

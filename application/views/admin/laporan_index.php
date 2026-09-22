@@ -14,7 +14,9 @@ $active = $presets[$preset] ?? array();
 		<p>Hanya laporan dalam lingkup akses Anda yang ditampilkan.</p>
 	</div>
 	<?php if (in_array('tickets.create_on_behalf', $permissions, TRUE)): ?>
-		<a class="btn btn-primary" href="<?= site_url('admin/laporan/buat') ?>"><i class="fas fa-edit mr-1" aria-hidden="true"></i> Input loket</a>
+	<div class="page-actions">
+		<a class="btn btn-primary btn-add" href="<?= site_url('admin/laporan/buat') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Input loket</a>
+	</div>
 	<?php endif; ?>
 </div>
 

@@ -18,7 +18,9 @@ $can_manage_roles = in_array('roles.manage', $permissions, TRUE);
 		<p>Pilih tab role untuk melihat anggotanya dan mengatur aksesnya. Role pengguna dapat diganti langsung dari tabel.</p>
 	</div>
 	<?php if (in_array('users.create_resident', $permissions, TRUE)): ?>
-		<a class="btn btn-primary" href="<?= site_url('admin/pengguna/buat') ?>"><i class="fas fa-user-plus mr-1" aria-hidden="true"></i> Daftarkan warga</a>
+	<div class="page-actions">
+		<a class="btn btn-primary btn-add" href="<?= site_url('admin/pengguna/buat') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Daftarkan warga</a>
+	</div>
 	<?php endif; ?>
 </div>
 

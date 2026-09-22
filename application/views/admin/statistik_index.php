@@ -42,7 +42,10 @@ foreach ($areas as $a) { $area_options[(string) $a->id] = $a->name; }
 <div class="row">
 	<div class="col-lg-8 mb-4">
 		<div class="card shadow-sm">
-			<div class="card-header"><h2>Nilai statistik</h2></div>
+			<div class="card-header card-header-actions">
+				<h2>Nilai statistik</h2>
+				<?php if ($can_review): ?><?= ui_add_button('modal-nilai-manual', 'Isi nilai manual') ?><?php endif; ?>
+			</div>
 			<div class="card-body">
 				<?php if (empty($values)): ?>
 					<div class="empty-box"><i class="fas fa-chart-bar" aria-hidden="true"></i><p class="mb-0">Belum ada nilai statistik.</p></div>
@@ -86,21 +89,6 @@ foreach ($areas as $a) { $area_options[(string) $a->id] = $a->name; }
 	</div>
 
 	<div class="col-lg-4 mb-4">
-		<?php if ($can_review): ?>
-		<form class="card shadow-sm mb-4" method="post" action="<?= site_url('admin/statistik/nilai') ?>" data-once>
-			<div class="card-header"><h2>Isi nilai manual</h2></div>
-			<div class="card-body">
-				<?= csrf_field() ?>
-				<?= ui_select(array('name' => 'indicator_id', 'label' => 'Indikator', 'required' => TRUE, 'options' => $indicator_options, 'placeholder_option' => 'Pilih indikator…', 'value' => '')) ?>
-				<?= ui_input(array('name' => 'source_year', 'label' => 'Tahun sumber', 'type' => 'number', 'required' => TRUE, 'min' => 1900, 'max' => 2100, 'value' => '')) ?>
-				<?= ui_select(array('name' => 'area_id', 'label' => 'Wilayah', 'required' => TRUE, 'options' => $area_options, 'value' => '')) ?>
-				<?= ui_input(array('name' => 'numeric_value', 'label' => 'Nilai', 'value' => '', 'help' => 'Angka saja, contoh 6809 atau 932.35.')) ?>
-				<?= ui_input(array('name' => 'year_label', 'label' => 'Label tahun', 'maxlength' => 100, 'value' => '', 'help' => 'Contoh: "Tahun lalu (label S2; pemetaan inferensi)".')) ?>
-				<button class="btn btn-primary btn-block" type="submit">Simpan nilai</button>
-			</div>
-		</form>
-		<?php endif; ?>
-
 		<div class="card shadow-sm">
 			<div class="card-header"><h2>Dokumen sumber</h2></div>
 			<div class="card-body">
@@ -117,3 +105,19 @@ foreach ($areas as $a) { $area_options[(string) $a->id] = $a->name; }
 		</div>
 	</div>
 </div>
+
+<?php if ($can_review): ?>
+<?= ui_modal_open('modal-nilai-manual', 'Isi nilai manual') ?>
+	<form method="post" action="<?= site_url('admin/statistik/nilai') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_select(array('name' => 'indicator_id', 'label' => 'Indikator', 'required' => TRUE, 'options' => $indicator_options, 'placeholder_option' => 'Pilih indikator…', 'value' => '')) ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'source_year', 'label' => 'Tahun sumber', 'type' => 'number', 'required' => TRUE, 'min' => 1900, 'max' => 2100, 'value' => '')) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'area_id', 'label' => 'Wilayah', 'required' => TRUE, 'options' => $area_options, 'value' => '')) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'numeric_value', 'label' => 'Nilai', 'value' => '', 'help' => 'Angka saja, contoh 6809 atau 932.35.')) ?>
+		<?= ui_input(array('name' => 'year_label', 'label' => 'Label tahun', 'maxlength' => 100, 'value' => '', 'help' => 'Contoh: "Tahun lalu (label S2; pemetaan inferensi)".')) ?>
+		<?= ui_modal_actions('Simpan nilai') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

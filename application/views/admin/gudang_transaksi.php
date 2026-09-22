@@ -18,7 +18,10 @@ $is_adjustment = ($transaction->transaction_type === 'adjustment');
 <?= ui_error_summary($this->form_errors) ?>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Baris barang</h2></div>
+	<div class="card-header card-header-actions">
+		<h2 class="h6 mb-0">Baris barang</h2>
+		<?php if ($can_edit && $transaction->status !== 'posted'): ?><?= ui_add_button('modal-tambah-baris', 'Tambah baris') ?><?php endif; ?>
+	</div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">SKU</th><th scope="col">Nama</th><th scope="col" class="num">Jumlah masuk</th><th scope="col" class="num">Jumlah satuan dasar</th><th scope="col">Catatan</th></tr></thead>
@@ -36,25 +39,6 @@ $is_adjustment = ($transaction->transaction_type === 'adjustment');
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit && $transaction->status !== 'posted'): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/baris" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_select(array('name' => 'item_public_id', 'label' => 'Barang', 'options' => $item_options, 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'quantity', 'label' => $is_adjustment ? 'Selisih (boleh minus)' : 'Jumlah', 'required' => TRUE)) ?></div>
-				<?php if ( ! $is_adjustment): ?>
-				<div class="col-md-2"><?= ui_input(array('name' => 'input_unit', 'label' => 'Satuan', 'maxlength' => 30,
-					'help' => 'Kosongkan untuk satuan dasar.')) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'batch_no', 'label' => 'Nomor batch', 'maxlength' => 60)) ?></div>
-				<?php else: ?>
-				<div class="col-md-5"><?= ui_input(array('name' => 'note', 'label' => 'Alasan penyesuaian', 'maxlength' => 255, 'required' => TRUE)) ?></div>
-				<?php endif; ?>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Tambah baris</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php if ($can_edit && $transaction->status !== 'posted'): ?>
@@ -69,4 +53,24 @@ $is_adjustment = ($transaction->transaction_type === 'adjustment');
 
 <?php if ($transaction->status === 'posted'): ?>
 <p class="small text-muted">Diposting <?= e(format_wib($transaction->posted_at, 'short')) ?>. Koreksi dilakukan lewat transaksi penyesuaian baru.</p>
+<?php endif; ?>
+
+<?php if ($can_edit && $transaction->status !== 'posted'): ?>
+<?= ui_modal_open('modal-tambah-baris', 'Tambah baris barang') ?>
+	<form method="post" action="<?= $base ?>/baris" data-once>
+		<?= csrf_field() ?>
+		<?= ui_select(array('name' => 'item_public_id', 'label' => 'Barang', 'options' => $item_options, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'quantity', 'label' => $is_adjustment ? 'Selisih (boleh minus)' : 'Jumlah', 'required' => TRUE)) ?>
+		<?php if ( ! $is_adjustment): ?>
+		<div class="form-row">
+			<div class="col-sm-6"><?= ui_input(array('name' => 'input_unit', 'label' => 'Satuan', 'maxlength' => 30,
+				'help' => 'Kosongkan untuk satuan dasar.')) ?></div>
+			<div class="col-sm-6"><?= ui_input(array('name' => 'batch_no', 'label' => 'Nomor batch', 'maxlength' => 60)) ?></div>
+		</div>
+		<?php else: ?>
+		<?= ui_input(array('name' => 'note', 'label' => 'Alasan penyesuaian', 'maxlength' => 255, 'required' => TRUE)) ?>
+		<?php endif; ?>
+		<?= ui_modal_actions('Tambah baris') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>

@@ -65,7 +65,7 @@ $locked = ($year->status === 'locked');
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Revisi</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Revisi</h2><?php if ($can_manage && ! $locked): ?><?= ui_add_button('modal-tambah-revisi', 'Tambah revisi') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Jenis</th><th scope="col">Label</th><th scope="col">Tahun dokumen</th><th scope="col">Jumlah baris</th></tr></thead>
@@ -82,24 +82,10 @@ $locked = ($year->status === 'locked');
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_manage && ! $locked): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/revisi" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_select(array('name' => 'revision_type', 'label' => 'Jenis revisi', 'options' => $revision_types, 'required' => TRUE)) ?></div>
-				<div class="col-md-4"><?= ui_input(array('name' => 'label', 'label' => 'Label', 'maxlength' => 160)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'document_year', 'label' => 'Tahun dokumen')) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'document_note', 'label' => 'Catatan dokumen', 'maxlength' => 500)) ?></div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan revisi</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Kategori anggaran</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Kategori anggaran</h2><?php if ($can_manage && ! $locked): ?><?= ui_add_button('modal-tambah-kategori', 'Tambah kategori') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Kelompok</th><th scope="col">Kode</th><th scope="col">Uraian</th><th scope="col">Tingkat</th></tr></thead>
@@ -116,26 +102,11 @@ $locked = ($year->status === 'locked');
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_manage && ! $locked): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/kategori" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_select(array('name' => 'section', 'label' => 'Kelompok', 'options' => $sections, 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'code', 'label' => 'Kode', 'maxlength' => 40)) ?></div>
-				<div class="col-md-4"><?= ui_input(array('name' => 'name', 'label' => 'Uraian', 'maxlength' => 220, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'parent_id', 'label' => 'Induk', 'options' => $parent_options)) ?></div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan kategori</button>
-		</form>
-		<p class="small text-muted mb-0">Induk dipilih dengan public id kategori; kedalaman maksimal bidang, subbidang, lalu kegiatan.</p>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php foreach ($revisions as $revision): ?>
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Angka: <?= e($revision->label) ?></h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Angka: <?= e($revision->label) ?></h2><?php if ($can_manage && ! $locked): ?><?= ui_add_button('modal-angka-'.$revision->public_id, 'Tambah angka') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Kelompok</th><th scope="col">Uraian</th><th scope="col" class="num">Jumlah</th><th scope="col">Catatan selisih</th></tr></thead>
@@ -152,26 +123,11 @@ $locked = ($year->status === 'locked');
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_manage && ! $locked): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/angka" data-once>
-			<?= csrf_field() ?>
-			<input type="hidden" name="revision_public_id" value="<?= e($revision->public_id) ?>">
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_select(array('name' => 'category_public_id', 'label' => 'Kategori', 'options' => $category_options, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'amount', 'label' => 'Jumlah (rupiah)', 'required' => TRUE)) ?></div>
-				<div class="col-md-4"><?= ui_input(array('name' => 'variance_note', 'label' => 'Catatan selisih', 'maxlength' => 500,
-					'help' => 'Wajib bila jumlah komponen berbeda dari induknya atau realisasi melebihi anggaran.')) ?></div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan angka</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 <?php endforeach; ?>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Dokumen pendukung</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Dokumen pendukung</h2><?php if ($can_manage && ! $locked): ?><?= ui_add_button('modal-tambah-dokumen', 'Catat dokumen') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Judul</th><th scope="col">Tahun</th><th scope="col">Salinan publik</th><th scope="col">Sudah disamarkan</th></tr></thead>
@@ -188,25 +144,6 @@ $locked = ($year->status === 'locked');
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_manage && ! $locked): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/dokumen" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_input(array('name' => 'title', 'label' => 'Judul dokumen', 'maxlength' => 220, 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'document_year', 'label' => 'Tahun dokumen')) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'public_document_id', 'label' => 'ID dokumen publik')) ?></div>
-				<div class="col-md-3 d-flex align-items-center">
-					<div class="form-check mt-3">
-						<input class="form-check-input" type="checkbox" id="is_redacted" name="is_redacted" value="1">
-						<label class="form-check-label" for="is_redacted">Sudah disamarkan</label>
-					</div>
-				</div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Catat dokumen</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php if ($snapshots): ?>
@@ -228,4 +165,59 @@ $locked = ($year->status === 'locked');
 		</table>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if ($can_manage && ! $locked): ?>
+<?= ui_modal_open('modal-tambah-revisi', 'Tambah revisi') ?>
+	<form method="post" action="<?= $base ?>/revisi" data-once>
+		<?= csrf_field() ?>
+		<?= ui_select(array('name' => 'revision_type', 'label' => 'Jenis revisi', 'options' => $revision_types, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'label', 'label' => 'Label', 'maxlength' => 160)) ?>
+		<?= ui_input(array('name' => 'document_year', 'id' => 'revision_document_year', 'label' => 'Tahun dokumen')) ?>
+		<?= ui_input(array('name' => 'document_note', 'label' => 'Catatan dokumen', 'maxlength' => 500)) ?>
+		<?= ui_modal_actions('Simpan revisi') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-kategori', 'Tambah kategori anggaran') ?>
+	<form method="post" action="<?= $base ?>/kategori" data-once>
+		<?= csrf_field() ?>
+		<?= ui_select(array('name' => 'section', 'label' => 'Kelompok', 'options' => $sections, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'code', 'label' => 'Kode', 'maxlength' => 40)) ?>
+		<?= ui_input(array('name' => 'name', 'label' => 'Uraian', 'maxlength' => 220, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'parent_id', 'label' => 'Induk', 'options' => $parent_options)) ?>
+		<p class="small text-muted mb-0">Induk dipilih dengan public id kategori; kedalaman maksimal bidang, subbidang, lalu kegiatan.</p>
+		<?= ui_modal_actions('Simpan kategori') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?php foreach ($revisions as $revision): $rid = preg_replace('/[^a-z0-9_\-]/i', '_', $revision->public_id); ?>
+<?= ui_modal_open('modal-angka-'.$revision->public_id, 'Tambah angka: '.$revision->label) ?>
+	<form method="post" action="<?= $base ?>/angka" data-once>
+		<?= csrf_field() ?>
+		<input type="hidden" name="revision_public_id" value="<?= e($revision->public_id) ?>">
+		<?= ui_select(array('name' => 'category_public_id', 'id' => 'category_public_id_'.$rid, 'label' => 'Kategori', 'options' => $category_options, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'amount', 'id' => 'amount_'.$rid, 'label' => 'Jumlah (rupiah)', 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'variance_note', 'id' => 'variance_note_'.$rid, 'label' => 'Catatan selisih', 'maxlength' => 500,
+			'help' => 'Wajib bila jumlah komponen berbeda dari induknya atau realisasi melebihi anggaran.')) ?>
+		<?= ui_modal_actions('Simpan angka') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endforeach; ?>
+
+<?= ui_modal_open('modal-tambah-dokumen', 'Catat dokumen pendukung') ?>
+	<form method="post" action="<?= $base ?>/dokumen" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'title', 'label' => 'Judul dokumen', 'maxlength' => 220, 'required' => TRUE)) ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'document_year', 'id' => 'doc_document_year', 'label' => 'Tahun dokumen')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'public_document_id', 'label' => 'ID dokumen publik')) ?></div>
+		</div>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="is_redacted" name="is_redacted" value="1">
+			<label class="form-check-label" for="is_redacted">Sudah disamarkan</label>
+		</div>
+		<?= ui_modal_actions('Catat dokumen') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>

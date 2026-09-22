@@ -33,12 +33,12 @@ $href_of = function ($row) {
 <div class="row">
 	<div class="col-lg-7">
 		<div class="card shadow-sm mb-4">
-			<div class="card-header d-flex justify-content-between align-items-center">
-				<h2 class="h6 mb-0">Item menu</h2>
-				<span class="small text-muted"><?= count($items) ?> item</span>
+			<div class="card-header card-header-actions">
+				<h2 class="h6 mb-0">Item menu <span class="small text-muted font-weight-normal">· <?= count($items) ?> item</span></h2>
+				<?php if ($can('cms.menu.manage')): ?><span data-menu-add><?= ui_add_button('modal-menu-item', 'Tambah item') ?></span><?php endif; ?>
 			</div>
 			<?php if (empty($items)): ?>
-				<div class="card-body empty-box"><i class="fas fa-list" aria-hidden="true"></i><p class="mb-0">Belum ada item. Tambahkan dari panel kanan.</p></div>
+				<div class="card-body empty-box"><i class="fas fa-list" aria-hidden="true"></i><p class="mb-0">Belum ada item. Klik “Tambah item” untuk menambahkan.</p></div>
 			<?php else: ?>
 			<ul class="list-group list-group-flush">
 				<?php foreach ($items as $index => $row): $href = $href_of($row); ?>
@@ -62,7 +62,7 @@ $href_of = function ($row) {
 							<form method="post" action="<?= site_url('admin/cms/menu-item/'.rawurlencode($row->public_id).'/turun') ?>">
 								<?= csrf_field() ?><button class="btn btn-outline-primary btn-sm" type="submit" aria-label="Turunkan <?= e($row->label) ?>">↓</button>
 							</form>
-							<button class="btn btn-outline-primary btn-sm" type="button" data-menu-edit='<?= e(json_encode(array(
+							<button class="btn btn-outline-primary btn-sm" type="button" data-toggle="modal" data-target="#modal-menu-item" data-menu-edit='<?= e(json_encode(array(
 								"item_id" => $row->public_id, "label" => $row->label, "link_type" => $row->link_type,
 								"route_path" => $row->route_path, "external_url" => $row->external_url,
 								"parent_id" => $row->parent_id === NULL ? "" : (string) ($public_by_id[(int) $row->parent_id] ?? ""),
@@ -129,32 +129,7 @@ $href_of = function ($row) {
 
 	<?php if ($can('cms.menu.manage')): ?>
 	<div class="col-lg-5">
-		<form class="card shadow-sm" method="post" action="<?= site_url('admin/cms/menu/'.rawurlencode($menu->location).'/item') ?>" data-once id="form-menu-item">
-			<div class="card-header"><h2 class="h6 mb-0">Tambah / ubah item</h2></div>
-			<div class="card-body">
-				<?= csrf_field() ?>
-				<input type="hidden" name="item_id" value="">
-				<?= ui_input(array('name' => 'label', 'label' => 'Label', 'required' => TRUE, 'maxlength' => 80)) ?>
-				<?= ui_select(array('name' => 'link_type', 'label' => 'Jenis tautan', 'options' => $link_types, 'value' => 'route')) ?>
-				<?= ui_input(array('name' => 'route_path', 'label' => 'Path aplikasi', 'maxlength' => 191,
-					'help' => 'Contoh: /profil. Path dashboard dan berkas privat ditolak.')) ?>
-				<?= ui_select(array('name' => 'cms_page_id', 'label' => 'Halaman CMS', 'options' => $page_options,
-					'placeholder_option' => $page_options ? 'Pilih halaman terbit' : 'Belum ada halaman terbit')) ?>
-				<?= ui_input(array('name' => 'external_url', 'label' => 'URL luar', 'maxlength' => 500, 'help' => 'Hanya http atau https.')) ?>
-				<?= ui_select(array('name' => 'parent_id', 'label' => 'Induk', 'options' => $roots,
-					'placeholder_option' => 'Tanpa induk (tingkat pertama)', 'help' => 'Menu maksimal dua tingkat.')) ?>
-				<div class="form-check mb-0">
-					<input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" value="1" checked>
-					<label class="form-check-label" for="is_enabled">Aktif (ikut diterbitkan)</label>
-				</div>
-			</div>
-			<div class="card-footer bg-white text-right">
-				<button class="btn btn-outline-secondary btn-sm" type="reset">Kosongkan</button>
-				<button class="btn btn-primary btn-sm" type="submit">Simpan item</button>
-			</div>
-		</form>
-
-		<div class="card shadow-sm mt-4">
+		<div class="card shadow-sm">
 			<div class="card-header"><h2 class="h6 mb-0">Susunan yang akan terbit</h2></div>
 			<div class="card-body">
 				<?php if (empty($tree)): ?>
@@ -181,22 +156,56 @@ $href_of = function ($row) {
 	<?php endif; ?>
 </div>
 
+
+<?php if ($can('cms.menu.manage')): ?>
+<?= ui_modal_open('modal-menu-item', 'Tambah item menu') ?>
+	<form method="post" action="<?= site_url('admin/cms/menu/'.rawurlencode($menu->location).'/item') ?>" data-once id="form-menu-item">
+		<?= csrf_field() ?>
+		<input type="hidden" name="item_id" value="">
+		<?= ui_input(array('name' => 'label', 'label' => 'Label', 'required' => TRUE, 'maxlength' => 80)) ?>
+		<?= ui_select(array('name' => 'link_type', 'label' => 'Jenis tautan', 'options' => $link_types, 'value' => 'route')) ?>
+		<?= ui_input(array('name' => 'route_path', 'label' => 'Path aplikasi', 'maxlength' => 191,
+			'help' => 'Contoh: /profil. Path dashboard dan berkas privat ditolak.')) ?>
+		<?= ui_select(array('name' => 'cms_page_id', 'label' => 'Halaman CMS', 'options' => $page_options,
+			'placeholder_option' => $page_options ? 'Pilih halaman terbit' : 'Belum ada halaman terbit')) ?>
+		<?= ui_input(array('name' => 'external_url', 'label' => 'URL luar', 'maxlength' => 500, 'help' => 'Hanya http atau https.')) ?>
+		<?= ui_select(array('name' => 'parent_id', 'label' => 'Induk', 'options' => $roots,
+			'placeholder_option' => 'Tanpa induk (tingkat pertama)', 'help' => 'Menu maksimal dua tingkat.')) ?>
+		<div class="form-check mb-0">
+			<input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" value="1" checked>
+			<label class="form-check-label" for="is_enabled">Aktif (ikut diterbitkan)</label>
+		</div>
+		<?= ui_modal_actions('Simpan item') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>
+
 <script>
-// Tombol "Ubah" mengisi form yang sama; server tetap memvalidasi ulang seluruh isian.
-document.querySelectorAll('[data-menu-edit]').forEach(function (button) {
-	button.addEventListener('click', function () {
-		var data = JSON.parse(button.getAttribute('data-menu-edit'));
-		var form = document.getElementById('form-menu-item');
-		form.querySelector('[name="item_id"]').value = data.item_id || '';
-		form.querySelector('[name="label"]').value = data.label || '';
-		form.querySelector('[name="link_type"]').value = data.link_type || 'route';
-		form.querySelector('[name="route_path"]').value = data.route_path || '';
-		form.querySelector('[name="external_url"]').value = data.external_url || '';
-		form.querySelector('[name="cms_page_id"]').value = data.cms_page_id || '';
-		form.querySelector('[name="parent_id"]').value = data.parent_id || '';
-		form.querySelector('[name="is_enabled"]').checked = data.is_enabled === 1;
-		form.scrollIntoView({behavior: 'smooth', block: 'center'});
-		form.querySelector('[name="label"]').focus();
+// Satu form di modal untuk tambah dan ubah; server tetap memvalidasi ulang seluruh isian.
+(function () {
+	var form = document.getElementById('form-menu-item');
+	if (!form) return;
+	var title = document.getElementById('modal-menu-item-title');
+	document.querySelectorAll('[data-menu-add] button').forEach(function (button) {
+		button.addEventListener('click', function () {
+			form.reset();
+			form.querySelector('[name="item_id"]').value = '';
+			title.textContent = 'Tambah item menu';
+		});
 	});
-});
+	document.querySelectorAll('[data-menu-edit]').forEach(function (button) {
+		button.addEventListener('click', function () {
+			var data = JSON.parse(button.getAttribute('data-menu-edit'));
+			title.textContent = 'Ubah item menu';
+			form.querySelector('[name="item_id"]').value = data.item_id || '';
+			form.querySelector('[name="label"]').value = data.label || '';
+			form.querySelector('[name="link_type"]').value = data.link_type || 'route';
+			form.querySelector('[name="route_path"]').value = data.route_path || '';
+			form.querySelector('[name="external_url"]').value = data.external_url || '';
+			form.querySelector('[name="cms_page_id"]').value = data.cms_page_id || '';
+			form.querySelector('[name="parent_id"]').value = data.parent_id || '';
+			form.querySelector('[name="is_enabled"]').checked = data.is_enabled === 1;
+		});
+	});
+})();
 </script>

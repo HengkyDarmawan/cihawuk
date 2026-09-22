@@ -68,20 +68,47 @@ window.Chw = (function ($) {
 		return queue;
 	}
 
+	/* Tema SweetAlert2 bersama: warna desa, tombol Batal di kiri. */
+	var Dialog = window.Swal ? window.Swal.mixin({
+		confirmButtonColor: '#174B3A', cancelButtonColor: '#6c757d', reverseButtons: true,
+		customClass: { popup: 'chw-swal' }
+	}) : null;
+	var Toast = window.Swal ? window.Swal.mixin({
+		toast: true, position: 'top-end', showConfirmButton: false, timer: 3500, timerProgressBar: true,
+		customClass: { popup: 'chw-toast' },
+		didOpen: function (el) { el.addEventListener('mouseenter', window.Swal.stopTimer); el.addEventListener('mouseleave', window.Swal.resumeTimer); }
+	}) : null;
+
+	function toast(type, message) {
+		if (Toast) { Toast.fire({ icon: type === 'error' ? 'error' : type, title: message }); }
+	}
+
 	function alertError(err) {
 		var message = (err && err.message) || 'Terjadi kesalahan.';
 		if (err && err.status === 403 && err.payload && err.payload.code === 'csrf_invalid') {
 			message = err.payload.message + ' Halaman akan dimuat ulang setelah token diperbarui.';
 			refreshToken();
 		}
-		if (window.Swal) {
-			window.Swal.fire({ icon: 'error', title: 'Tidak dapat diproses', text: message, confirmButtonColor: '#174B3A' });
+		if (Dialog) {
+			Dialog.fire({ icon: 'error', title: 'Tidak dapat diproses', text: message });
 		} else {
 			window.alert(message);
 		}
 	}
 
-	/* Konfirmasi untuk aksi penting (form dengan data-confirm). */
+	/* Pesan flash dari server: sukses/info sebagai toast, peringatan/galat sebagai popup. */
+	document.querySelectorAll('[data-flash]').forEach(function (el) {
+		var type = el.getAttribute('data-type') || 'info';
+		var message = el.getAttribute('data-message') || '';
+		if (!window.Swal) { el.hidden = false; return; }
+		if (type === 'success' || type === 'info') {
+			toast(type, message);
+		} else {
+			Dialog.fire({ icon: type === 'error' ? 'error' : 'warning', title: type === 'error' ? 'Gagal' : 'Perhatian', text: message });
+		}
+	});
+
+	/* Konfirmasi untuk aksi penting (form dengan data-confirm). data-confirm-danger: tombol merah. */
 	document.querySelectorAll('form[data-confirm]').forEach(function (form) {
 		form.addEventListener('submit', function (e) {
 			if (form.dataset.confirmed === '1') return;
@@ -89,16 +116,17 @@ window.Chw = (function ($) {
 			var text = form.getAttribute('data-confirm');
 			var title = form.getAttribute('data-confirm-title') || 'Konfirmasi tindakan';
 			var confirmText = form.getAttribute('data-confirm-ok') || 'Ya, lanjutkan';
+			var danger = form.hasAttribute('data-confirm-danger');
 			var proceed = function () { form.dataset.confirmed = '1'; form.submit(); };
 			// Batal: kembalikan pilihan dropdown yang langsung mengirim form.
 			var cancel = function () {
 				form.querySelectorAll('select[data-autosubmit]').forEach(function (s) { s.value = s.getAttribute('data-original') || ''; });
 			};
-			if (window.Swal) {
-				window.Swal.fire({
-					icon: 'question', title: title, text: text, showCancelButton: true,
-					confirmButtonText: confirmText, cancelButtonText: 'Batal',
-					confirmButtonColor: '#174B3A', cancelButtonColor: '#6c757d', focusCancel: true
+			if (Dialog) {
+				Dialog.fire({
+					icon: danger ? 'warning' : 'question', title: title, text: text, showCancelButton: true,
+					confirmButtonText: confirmText, cancelButtonText: 'Batal', focusCancel: true,
+					confirmButtonColor: danger ? '#B42318' : '#174B3A'
 				}).then(function (result) { if (result.isConfirmed) { proceed(); } else { cancel(); } });
 			} else if (window.confirm(text)) {
 				proceed();
@@ -107,6 +135,18 @@ window.Chw = (function ($) {
 			}
 		});
 	});
+
+	/* Modal form tambah: fokus ke isian pertama, buka otomatis bila diminta (edit via URL / galat). */
+	if ($ && $.fn && $.fn.modal) {
+		$(document).on('shown.bs.modal', '.form-modal', function () {
+			var first = this.querySelector('.modal-body input:not([type=hidden]):not([disabled]), .modal-body select:not([disabled]), .modal-body textarea:not([disabled])');
+			if (first) first.focus();
+		});
+		var autoOpen = document.querySelector('.form-modal[data-open-on-load]') ||
+			(location.hash && /^#[A-Za-z][\w-]*$/.test(location.hash) ? document.querySelector('.form-modal' + location.hash) : null) ||
+			(document.querySelector('.form-modal .is-invalid') ? document.querySelector('.form-modal .is-invalid').closest('.form-modal') : null);
+		if (autoOpen) $(autoOpen).modal('show');
+	}
 
 	/* Cegah pengiriman ganda pada form biasa. */
 	document.querySelectorAll('form[data-once]').forEach(function (form) {
@@ -303,8 +343,11 @@ window.Chw = (function ($) {
 	});
 
 	if ($ && $.fn && $.fn.select2) {
-		$('select[data-select2]').select2({ theme: 'bootstrap4', width: '100%', language: 'id' });
+		$('select[data-select2]').each(function () {
+			var $modal = $(this).closest('.modal');
+			$(this).select2({ theme: 'bootstrap4', width: '100%', language: 'id', dropdownParent: $modal.length ? $modal : $(document.body) });
+		});
 	}
 
-	return { post: post, refreshToken: refreshToken, setToken: setToken, alertError: alertError };
+	return { post: post, refreshToken: refreshToken, setToken: setToken, alertError: alertError, toast: toast };
 })(window.jQuery);

@@ -6,16 +6,19 @@ $can = function ($p) use ($permissions) { return in_array($p, $permissions, TRUE
 		<h1>Dataset dan Statistik</h1>
 		<p>Halaman Data Desa hanya menampilkan dataset yang sudah diterbitkan. Angka wajib diverifikasi lebih dulu.</p>
 	</div>
-	<div class="text-right">
-		<span class="d-block small text-muted"><?= (int) $pending_values ?> nilai menunggu verifikasi</span>
-		<span class="d-block small text-muted"><?= (int) $open_issues ?> masalah data terbuka</span>
+	<div class="page-actions align-items-center">
+		<div class="text-right mr-2">
+			<span class="d-block small text-muted"><?= (int) $pending_values ?> nilai menunggu verifikasi</span>
+			<span class="d-block small text-muted"><?= (int) $open_issues ?> masalah data terbuka</span>
+		</div>
+		<?php if ($can('data.review')): ?><?= ui_add_button('modal-dataset-baru', 'Dataset baru') ?><?php endif; ?>
 	</div>
 </div>
 
 <?= ui_error_summary($this->form_errors) ?>
 
 <div class="row">
-	<div class="col-lg-8">
+	<div class="col-12">
 		<div class="card shadow-sm mb-4">
 			<div class="card-header d-flex justify-content-between align-items-center">
 				<h2 class="h6 mb-0">Daftar dataset</h2>
@@ -66,24 +69,24 @@ $can = function ($p) use ($permissions) { return in_array($p, $permissions, TRUE
 		</p>
 	</div>
 
-	<?php if ($can('data.review')): ?>
-	<div class="col-lg-4">
-		<form class="card shadow-sm" method="post" action="<?= site_url('admin/dataset/buat') ?>" data-once>
-			<div class="card-header"><h2 class="h6 mb-0">Dataset baru</h2></div>
-			<div class="card-body">
-				<?= csrf_field() ?>
-				<?= ui_input(array('name' => 'name', 'label' => 'Nama dataset', 'required' => TRUE, 'maxlength' => 160)) ?>
-				<?= ui_select(array('name' => 'theme', 'label' => 'Tema', 'required' => TRUE, 'options' => $themes)) ?>
-				<?= ui_input(array('name' => 'period_year', 'label' => 'Tahun periode', 'type' => 'number', 'required' => TRUE, 'min' => 1900, 'max' => 2100)) ?>
-				<?= ui_input(array('name' => 'coverage', 'label' => 'Cakupan wilayah', 'value' => 'Desa Cihawuk', 'maxlength' => 120)) ?>
-				<?= ui_select(array('name' => 'sensitivity', 'label' => 'Sensitivitas', 'options' => $sensitivities, 'value' => 'public')) ?>
-				<?= ui_select(array('name' => 'source_id', 'label' => 'Dokumen sumber', 'options' => array_reduce($sources, function ($acc, $s) {
-					$acc[(string) $s->id] = $s->source_code.' — '.$s->title; return $acc; }, array()), 'placeholder_option' => 'Pilih nanti')) ?>
-				<?= ui_textarea(array('name' => 'methodology', 'label' => 'Metodologi', 'rows' => 3, 'maxlength' => 1000,
-					'help' => 'Wajib diisi sebelum dataset dapat diterbitkan.')) ?>
-			</div>
-			<div class="card-footer bg-white text-right"><button class="btn btn-primary btn-sm" type="submit">Buat draft</button></div>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can('data.review')): ?>
+<?= ui_modal_open('modal-dataset-baru', 'Dataset baru', 'modal-lg') ?>
+	<form method="post" action="<?= site_url('admin/dataset/buat') ?>" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-md-8"><?= ui_input(array('name' => 'name', 'label' => 'Nama dataset', 'required' => TRUE, 'maxlength' => 160)) ?></div>
+			<div class="col-md-4"><?= ui_input(array('name' => 'period_year', 'label' => 'Tahun periode', 'type' => 'number', 'required' => TRUE, 'min' => 1900, 'max' => 2100)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'theme', 'label' => 'Tema', 'required' => TRUE, 'options' => $themes)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'sensitivity', 'label' => 'Sensitivitas', 'options' => $sensitivities, 'value' => 'public')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'coverage', 'label' => 'Cakupan wilayah', 'value' => 'Desa Cihawuk', 'maxlength' => 120)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'source_id', 'label' => 'Dokumen sumber', 'options' => array_reduce($sources, function ($acc, $s) {
+				$acc[(string) $s->id] = $s->source_code.' — '.$s->title; return $acc; }, array()), 'placeholder_option' => 'Pilih nanti')) ?></div>
+		</div>
+		<?= ui_textarea(array('name' => 'methodology', 'label' => 'Metodologi', 'rows' => 3, 'maxlength' => 1000,
+			'help' => 'Wajib diisi sebelum dataset dapat diterbitkan.')) ?>
+		<?= ui_modal_actions('Buat draft') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

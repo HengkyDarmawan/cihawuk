@@ -58,7 +58,7 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Unit dan lembaga</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Unit dan lembaga</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-unit', 'Tambah unit') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Nama</th><th scope="col">Jenis</th><th scope="col">Induk</th><th scope="col">Aktif</th></tr></thead>
@@ -75,29 +75,10 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/unit" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_input(array('name' => 'name', 'label' => 'Nama unit', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'unit_type', 'label' => 'Jenis', 'options' => $unit_types, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'parent_id', 'label' => 'Induk', 'options' => $unit_options)) ?></div>
-				<div class="col-md-2 d-flex align-items-center">
-					<div class="form-check mt-3">
-						<input class="form-check-input" type="checkbox" id="unit_active" name="active" value="1" checked>
-						<label class="form-check-label" for="unit_active">Aktif</label>
-					</div>
-				</div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan unit</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Jabatan</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Jabatan</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-jabatan', 'Tambah jabatan') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Jabatan</th><th scope="col">Unit</th><th scope="col">Atasan</th><th scope="col">Tingkat</th><th scope="col">Aktif</th><th scope="col">Aksi</th></tr></thead>
@@ -111,7 +92,7 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 					<td><?= (int) $position->active === 1 ? 'ya' : 'tidak' ?></td>
 					<td>
 						<?php if ($can_edit && (int) $position->active === 1): ?>
-						<form method="post" action="<?= $base ?>/jabatan-nonaktif" data-once>
+						<form method="post" action="<?= $base ?>/jabatan-nonaktif" data-once data-confirm="Jabatan <?= e($position->title) ?> akan dinonaktifkan dan tidak bisa dipakai untuk penugasan baru." data-confirm-title="Nonaktifkan jabatan?" data-confirm-ok="Ya, nonaktifkan" data-confirm-danger>
 							<?= csrf_field() ?>
 							<input type="hidden" name="position_public_id" value="<?= e($position->public_id) ?>">
 							<button class="btn btn-sm btn-outline-secondary" type="submit">Nonaktifkan</button>
@@ -124,30 +105,10 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/jabatan" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_input(array('name' => 'title', 'label' => 'Nama jabatan', 'maxlength' => 180, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'unit_id', 'label' => 'Unit', 'options' => $unit_options)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'parent_id', 'label' => 'Atasan', 'options' => $position_options)) ?></div>
-				<div class="col-md-2 d-flex align-items-center">
-					<div class="form-check mt-3">
-						<input class="form-check-input" type="checkbox" id="position_active" name="active" value="1" checked>
-						<label class="form-check-label" for="position_active">Aktif</label>
-					</div>
-				</div>
-			</div>
-			<?= ui_textarea(array('name' => 'duties_public', 'label' => 'Tupoksi publik', 'maxlength' => 1000, 'rows' => 2)) ?>
-			<button class="btn btn-outline-primary" type="submit">Simpan jabatan</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Penugasan</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Penugasan</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-penugasan', 'Tambah penugasan') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Jabatan</th><th scope="col">Orang</th><th scope="col">Jenis</th><th scope="col">Mulai</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead>
@@ -161,7 +122,7 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 					<td><?= e($assignment->status) ?><?= $assignment->end_reason ? '<br><span class="small text-muted">'.e($assignment->end_reason).'</span>' : '' ?></td>
 					<td>
 						<?php if ($can_edit && $assignment->status === 'active'): ?>
-						<form class="form-inline" method="post" action="<?= $base ?>/penugasan-akhiri" data-once>
+						<form class="form-inline" method="post" action="<?= $base ?>/penugasan-akhiri" data-once data-confirm="Penugasan <?= e($assignment->full_name ?: '(kosong)') ?> sebagai <?= e($assignment->position_title) ?> akan diakhiri." data-confirm-title="Akhiri penugasan?" data-confirm-ok="Ya, akhiri" data-confirm-danger>
 							<?= csrf_field() ?>
 							<input type="hidden" name="assignment_public_id" value="<?= e($assignment->public_id) ?>">
 							<input class="form-control form-control-sm mr-1" type="date" name="end_date" aria-label="Tanggal berakhir">
@@ -176,22 +137,6 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<form method="post" action="<?= $base ?>/penugasan" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_select(array('name' => 'position_id', 'label' => 'Jabatan', 'options' => $active_positions, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'person_id', 'label' => 'Orang', 'options' => $person_options)) ?></div>
-				<div class="col-md-2"><?= ui_select(array('name' => 'assignment_type', 'label' => 'Jenis', 'options' => $assignment_types, 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'start_date', 'label' => 'Mulai', 'type' => 'date')) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'decree_number', 'label' => 'Nomor SK', 'maxlength' => 120,
-					'help' => 'Disimpan terenkripsi, tidak tampil publik.')) ?></div>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan penugasan</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php if ($can_edit && count($periods) > 1): ?>
@@ -231,4 +176,52 @@ foreach ($positions as $position) { if ((int) $position->active === 1) { $active
 		</table>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if ($can_edit): ?>
+<?= ui_modal_open('modal-tambah-unit', 'Tambah unit / lembaga') ?>
+	<form method="post" action="<?= $base ?>/unit" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'name', 'label' => 'Nama unit', 'maxlength' => 180, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'unit_type', 'label' => 'Jenis', 'options' => $unit_types, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'parent_id', 'id' => 'unit_parent_id', 'label' => 'Induk', 'options' => $unit_options)) ?>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="unit_active" name="active" value="1" checked>
+			<label class="form-check-label" for="unit_active">Aktif</label>
+		</div>
+		<?= ui_modal_actions('Simpan unit') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-jabatan', 'Tambah jabatan') ?>
+	<form method="post" action="<?= $base ?>/jabatan" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'title', 'label' => 'Nama jabatan', 'maxlength' => 180, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'unit_id', 'label' => 'Unit', 'options' => $unit_options)) ?>
+		<?= ui_select(array('name' => 'parent_id', 'id' => 'position_parent_id', 'label' => 'Atasan', 'options' => $position_options)) ?>
+		<?= ui_textarea(array('name' => 'duties_public', 'label' => 'Tupoksi publik', 'maxlength' => 1000, 'rows' => 2)) ?>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="position_active" name="active" value="1" checked>
+			<label class="form-check-label" for="position_active">Aktif</label>
+		</div>
+		<?= ui_modal_actions('Simpan jabatan') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-tambah-penugasan', 'Tambah penugasan', 'modal-lg') ?>
+	<form method="post" action="<?= $base ?>/penugasan" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_select(array('name' => 'position_id', 'label' => 'Jabatan', 'options' => $active_positions, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'person_id', 'label' => 'Orang', 'options' => $person_options)) ?></div>
+		</div>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_select(array('name' => 'assignment_type', 'label' => 'Jenis', 'options' => $assignment_types, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'start_date', 'label' => 'Mulai', 'type' => 'date')) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'decree_number', 'label' => 'Nomor SK', 'maxlength' => 120,
+			'help' => 'Disimpan terenkripsi, tidak tampil publik.')) ?>
+		<?= ui_modal_actions('Simpan penugasan') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>

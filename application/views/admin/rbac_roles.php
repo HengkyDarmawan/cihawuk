@@ -4,7 +4,7 @@
 		<h1>Role, Izin, dan Menu</h1>
 		<p>Atur role pengelola, izin yang dipegang tiap role, dan menu dashboard yang terlihat.</p>
 	</div>
-	<div><a class="btn btn-primary" href="<?= site_url('admin/rbac/role/baru') ?>"><i class="fas fa-plus fa-sm mr-1" aria-hidden="true"></i> Tambah role</a></div>
+	<div class="page-actions"><a class="btn btn-primary btn-add" href="<?= site_url('admin/rbac/role/baru') ?>"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Tambah role</a></div>
 </div>
 
 <?php $this->load->view('admin/rbac_tabs', array('tab' => $tab)); ?>

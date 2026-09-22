@@ -280,4 +280,25 @@
 		form.addEventListener('change', function (e) { if (e.target.name === 'report_type') apply(); });
 		apply();
 	});
+	/* Pesan flash & galat form lewat SweetAlert2. Alert di halaman tetap ada untuk pembaca layar. */
+	if (window.Swal) {
+		var Dialog = window.Swal.mixin({ confirmButtonColor: '#174B3A', cancelButtonColor: '#6c757d', reverseButtons: true, customClass: { popup: 'chw-swal' } });
+		var Toast = window.Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3500, timerProgressBar: true, customClass: { popup: 'chw-toast' } });
+		document.querySelectorAll('[data-flash]').forEach(function (el) {
+			var type = el.getAttribute('data-type') || 'info';
+			var message = el.getAttribute('data-message') || '';
+			if (type === 'success' || type === 'info') {
+				Toast.fire({ icon: type, title: message });
+				(el.closest('.container-site') || el).hidden = true;
+			} else {
+				Dialog.fire({ icon: type === 'error' ? 'error' : 'warning', title: type === 'error' ? 'Gagal' : 'Perhatian', text: message });
+			}
+		});
+		var inline = document.querySelector('[data-swal-alert]');
+		if (inline) {
+			var kind = inline.getAttribute('data-swal-alert');
+			var titles = { error: 'Tidak berhasil', warning: 'Perhatian', success: 'Berhasil' };
+			Dialog.fire({ icon: kind, title: inline.getAttribute('data-swal-title') || titles[kind] || '', text: inline.textContent.trim() });
+		}
+	}
 })();

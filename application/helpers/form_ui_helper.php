@@ -207,3 +207,47 @@ if ( ! function_exists('ui_error_summary'))
 		return $html.'</ul></div>';
 	}
 }
+
+/*
+ * Popup form tambah (Bootstrap 4). Form tambah tidak ditempel di bawah tabel; halaman daftar
+ * hanya menampilkan tombol "+ Tambah …" yang membuka modal berisi form yang sama.
+ */
+if ( ! function_exists('ui_add_button'))
+{
+	function ui_add_button($target, $label, $class = 'btn-primary')
+	{
+		return '<button class="btn '.e($class).' btn-add" type="button" data-toggle="modal" data-target="#'.e($target).'">'
+			.'<i class="fas fa-plus mr-1" aria-hidden="true"></i> '.e($label).'</button>';
+	}
+}
+
+if ( ! function_exists('ui_modal_open'))
+{
+	/** $size: '', 'modal-lg', atau 'modal-xl'. $open: tampilkan langsung saat halaman dimuat. */
+	function ui_modal_open($id, $title, $size = '', $open = FALSE)
+	{
+		return '<div class="modal fade form-modal" id="'.e($id).'" tabindex="-1" role="dialog" aria-labelledby="'.e($id).'-title" aria-hidden="true"'.($open ? ' data-open-on-load' : '').'>'
+			.'<div class="modal-dialog modal-dialog-scrollable '.e($size).'" role="document"><div class="modal-content">'
+			.'<div class="modal-header"><h2 class="modal-title h5" id="'.e($id).'-title">'.e($title).'</h2>'
+			.'<button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button></div>'
+			.'<div class="modal-body">';
+	}
+}
+
+if ( ! function_exists('ui_modal_close'))
+{
+	function ui_modal_close()
+	{
+		return '</div></div></div></div>';
+	}
+}
+
+if ( ! function_exists('ui_modal_actions'))
+{
+	/** Baris tombol di akhir form dalam modal: Batal + tombol kirim. */
+	function ui_modal_actions($submit_label = 'Simpan')
+	{
+		return '<div class="modal-actions"><button class="btn btn-light" type="button" data-dismiss="modal">Batal</button>'
+			.'<button class="btn btn-primary" type="submit"><i class="fas fa-check mr-1" aria-hidden="true"></i> '.e($submit_label).'</button></div>';
+	}
+}

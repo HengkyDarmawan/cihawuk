@@ -26,12 +26,12 @@ $ordered_ids = implode(',', array_map(function ($s) { return $s->public_id; }, $
 <div class="row">
 	<div class="col-lg-8">
 		<div class="card shadow-sm mb-4">
-			<div class="card-header d-flex justify-content-between align-items-center">
-				<h2 class="h6 mb-0">Section pada halaman</h2>
-				<span class="small text-muted"><?= count($sections) ?> section</span>
+			<div class="card-header card-header-actions">
+				<h2 class="h6 mb-0">Section pada halaman <span class="small text-muted font-weight-normal">· <?= count($sections) ?> section</span></h2>
+				<?php if ($can('cms.page.create')): ?><?= ui_add_button('modal-tambah-section', 'Tambah section') ?><?php endif; ?>
 			</div>
 			<?php if (empty($sections)): ?>
-				<div class="card-body empty-box"><i class="fas fa-layer-group" aria-hidden="true"></i><p class="mb-0">Belum ada section. Tambahkan dari panel kanan.</p></div>
+				<div class="card-body empty-box"><i class="fas fa-layer-group" aria-hidden="true"></i><p class="mb-0">Belum ada section. Klik “Tambah section” untuk menambahkan.</p></div>
 			<?php else: ?>
 			<ul class="list-group list-group-flush" data-sortable data-sortable-form="form-urutan">
 				<?php foreach ($sections as $index => $section):
@@ -128,29 +128,27 @@ $ordered_ids = implode(',', array_map(function ($s) { return $s->public_id; }, $
 			'reviews' => $reviews, 'schedules' => $schedules, 'permissions' => $permissions,
 		)); ?>
 
-		<?php if ($can('cms.page.create')): ?>
-		<div class="card shadow-sm">
-			<div class="card-header"><h2 class="h6 mb-0">Tambah section</h2></div>
-			<form method="post" action="<?= site_url('admin/cms/section/tambah') ?>">
-				<div class="card-body">
-					<?= csrf_field() ?>
-					<input type="hidden" name="page_key" value="<?= e($page->page_key) ?>">
-					<div class="form-group mb-2">
-						<label for="section_type">Jenis section</label>
-						<select class="form-control form-select" id="section_type" name="section_type" required>
-							<?php foreach ($section_types as $code => $definition): ?>
-								<option value="<?= e($code) ?>"><?= e($definition['label']) ?></option>
-							<?php endforeach; ?>
-						</select>
-					</div>
-					<p class="small text-muted mb-0">
-						Jenis section berasal dari daftar yang disediakan pengembang. Tidak ada HTML, CSS, atau JavaScript bebas.
-						Section yang modulnya belum aktif tidak muncul di daftar ini.
-					</p>
-				</div>
-				<div class="card-footer bg-white text-right"><button class="btn btn-primary btn-sm" type="submit">Tambahkan</button></div>
-			</form>
-		</div>
-		<?php endif; ?>
 	</div>
 </div>
+
+<?php if ($can('cms.page.create')): ?>
+<?= ui_modal_open('modal-tambah-section', 'Tambah section') ?>
+	<form method="post" action="<?= site_url('admin/cms/section/tambah') ?>">
+		<?= csrf_field() ?>
+		<input type="hidden" name="page_key" value="<?= e($page->page_key) ?>">
+		<div class="form-group mb-2">
+			<label for="section_type">Jenis section</label>
+			<select class="form-control form-select" id="section_type" name="section_type" required>
+				<?php foreach ($section_types as $code => $definition): ?>
+					<option value="<?= e($code) ?>"><?= e($definition['label']) ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<p class="small text-muted mb-0">
+			Jenis section berasal dari daftar yang disediakan pengembang. Tidak ada HTML, CSS, atau JavaScript bebas.
+			Section yang modulnya belum aktif tidak muncul di daftar ini.
+		</p>
+		<?= ui_modal_actions('Tambahkan') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

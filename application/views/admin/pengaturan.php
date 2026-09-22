@@ -219,7 +219,7 @@
 
 <?php elseif ($section === 'kategori'): ?>
 	<div class="card shadow-sm mb-4">
-		<div class="card-header"><h2>Kategori aktif</h2></div>
+		<div class="card-header card-header-actions"><h2>Kategori aktif</h2><?= ui_add_button('modal-tambah-kategori', 'Tambah kategori') ?></div>
 		<div class="card-body">
 			<div class="table-responsive">
 				<table class="table table-sm mb-0">
@@ -274,33 +274,32 @@
 		</div>
 	</div>
 
-	<form class="card shadow-sm" method="post" action="<?= site_url('admin/pengaturan/kategori') ?>" data-once>
-		<div class="card-header"><h2>Tambah kategori</h2></div>
-		<div class="card-body">
-			<?= csrf_field() ?>
-			<input type="hidden" name="action" value="create">
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_input(array('name' => 'code', 'label' => 'Kode', 'required' => TRUE, 'maxlength' => 50, 'value' => '', 'help' => 'HURUF_BESAR tanpa spasi.')) ?></div>
-				<div class="col-md-5"><?= ui_input(array('name' => 'name', 'label' => 'Nama kategori', 'required' => TRUE, 'maxlength' => 100, 'value' => '')) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'report_type', 'label' => 'Jenis laporan', 'options' => app_config('report_types'), 'placeholder_option' => 'Semua jenis', 'value' => '')) ?></div>
-			</div>
-			<?= ui_input(array('name' => 'description', 'label' => 'Keterangan', 'maxlength' => 255, 'value' => '')) ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_select(array('name' => 'default_unit_id', 'label' => 'Unit tujuan', 'options' => $units, 'placeholder_option' => 'Tanpa unit', 'value' => '')) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'sla_policy_id', 'label' => 'Kebijakan SLA', 'options' => $sla_options, 'placeholder_option' => 'Bawaan', 'value' => '')) ?></div>
-				<div class="col-md-4"><?= ui_input(array('name' => 'sort_order', 'label' => 'Urutan', 'type' => 'number', 'min' => 0, 'max' => 9999, 'value' => '100')) ?></div>
-			</div>
-			<div class="custom-control custom-checkbox">
-				<input class="custom-control-input" type="checkbox" id="new_sensitive" name="is_sensitive" value="1">
-				<label class="custom-control-label" for="new_sensitive">Kategori sensitif (laporan otomatis rahasia)</label>
-			</div>
-			<div class="custom-control custom-checkbox">
-				<input class="custom-control-input" type="checkbox" id="new_location" name="location_required" value="1">
-				<label class="custom-control-label" for="new_location">Lokasi wajib diisi</label>
-			</div>
+	<?= ui_modal_open('modal-tambah-kategori', 'Tambah kategori', 'modal-lg') ?>
+	<form method="post" action="<?= site_url('admin/pengaturan/kategori') ?>" data-once>
+		<?= csrf_field() ?>
+		<input type="hidden" name="action" value="create">
+		<div class="form-row">
+			<div class="col-md-4"><?= ui_input(array('name' => 'code', 'label' => 'Kode', 'required' => TRUE, 'maxlength' => 50, 'value' => '', 'help' => 'HURUF_BESAR tanpa spasi.')) ?></div>
+			<div class="col-md-8"><?= ui_input(array('name' => 'name', 'label' => 'Nama kategori', 'required' => TRUE, 'maxlength' => 100, 'value' => '')) ?></div>
 		</div>
-		<div class="card-footer bg-white text-right"><button class="btn btn-primary" type="submit">Tambah kategori</button></div>
+		<?= ui_select(array('name' => 'report_type', 'label' => 'Jenis laporan', 'options' => app_config('report_types'), 'placeholder_option' => 'Semua jenis', 'value' => '')) ?>
+		<?= ui_input(array('name' => 'description', 'label' => 'Keterangan', 'maxlength' => 255, 'value' => '')) ?>
+		<div class="form-row">
+			<div class="col-md-5"><?= ui_select(array('name' => 'default_unit_id', 'label' => 'Unit tujuan', 'options' => $units, 'placeholder_option' => 'Tanpa unit', 'value' => '')) ?></div>
+			<div class="col-md-4"><?= ui_select(array('name' => 'sla_policy_id', 'label' => 'Kebijakan SLA', 'options' => $sla_options, 'placeholder_option' => 'Bawaan', 'value' => '')) ?></div>
+			<div class="col-md-3"><?= ui_input(array('name' => 'sort_order', 'label' => 'Urutan', 'type' => 'number', 'min' => 0, 'max' => 9999, 'value' => '100')) ?></div>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input class="custom-control-input" type="checkbox" id="new_sensitive" name="is_sensitive" value="1">
+			<label class="custom-control-label" for="new_sensitive">Kategori sensitif (laporan otomatis rahasia)</label>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input class="custom-control-input" type="checkbox" id="new_location" name="location_required" value="1">
+			<label class="custom-control-label" for="new_location">Lokasi wajib diisi</label>
+		</div>
+		<?= ui_modal_actions('Tambah kategori') ?>
 	</form>
+	<?= ui_modal_close() ?>
 
 <?php elseif ($section === 'pemeliharaan'): $m = $maintenance; ?>
 <div class="row g-3 mb-4">

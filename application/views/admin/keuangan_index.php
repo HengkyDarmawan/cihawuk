@@ -6,6 +6,7 @@
 		<h1>Anggaran dan Realisasi</h1>
 		<p>Anggaran murni, anggaran perubahan, dan realisasi diisi sebagai revisi terpisah pada satu tahun anggaran.</p>
 	</div>
+	<?php if ($can_manage): ?><div class="page-actions"><?= ui_add_button('modal-tambah-tahun', 'Tambah tahun anggaran') ?></div><?php endif; ?>
 </div>
 
 <?= ui_error_summary($this->form_errors) ?>
@@ -28,17 +29,15 @@
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_manage): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah tahun anggaran</h3>
-		<form method="post" action="<?= site_url('admin/keuangan/tahun') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_input(array('name' => 'fiscal_year', 'label' => 'Tahun anggaran', 'required' => TRUE)) ?></div>
-				<div class="col-md-9"><?= ui_input(array('name' => 'note', 'label' => 'Catatan', 'maxlength' => 1000)) ?></div>
-			</div>
-			<button class="btn btn-primary" type="submit">Buat</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can_manage): ?>
+<?= ui_modal_open('modal-tambah-tahun', 'Tambah tahun anggaran') ?>
+	<form method="post" action="<?= site_url('admin/keuangan/tahun') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'fiscal_year', 'label' => 'Tahun anggaran', 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'note', 'label' => 'Catatan', 'maxlength' => 1000)) ?>
+		<?= ui_modal_actions('Buat') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

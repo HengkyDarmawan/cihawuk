@@ -4,42 +4,13 @@
 		<h1>Media</h1>
 		<p><?= (int) $total ?> berkas. Media hanya dapat dipakai konten publik bila status hak publikasinya jelas.</p>
 	</div>
+	<div class="page-actions"><?= ui_add_button('modal-unggah-media', 'Unggah media') ?></div>
 </div>
 
 <div class="row">
-	<div class="col-lg-4 mb-4">
-		<form class="card shadow-sm" method="post" action="<?= site_url('admin/media') ?>" enctype="multipart/form-data" data-once>
-			<div class="card-header"><h2>Unggah media</h2></div>
-			<div class="card-body">
-				<?= csrf_field() ?>
-				<div class="form-group">
-					<label for="berkas">Berkas <span class="required-mark" aria-hidden="true">*</span></label>
-					<input class="form-control-file" type="file" id="berkas" name="berkas[]" required accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" aria-describedby="berkas-help">
-					<small class="form-text" id="berkas-help">JPG, PNG, WebP, atau PDF. Maksimal 8 MB. Berkas asli disimpan di penyimpanan privat; yang tampil publik adalah salinan hasil olahan tanpa metadata EXIF.</small>
-				</div>
-				<?= ui_input(array('name' => 'alt_text', 'label' => 'Teks alternatif (alt)', 'maxlength' => 255, 'value' => '',
-					'help' => 'Deskripsi singkat isi gambar untuk pembaca layar.')) ?>
-				<?= ui_input(array('name' => 'caption', 'label' => 'Keterangan (caption)', 'maxlength' => 500, 'value' => '')) ?>
-				<?= ui_input(array('name' => 'source_credit', 'label' => 'Kredit/sumber', 'maxlength' => 255, 'value' => '')) ?>
-				<?= ui_input(array('name' => 'source_year', 'label' => 'Tahun sumber', 'type' => 'number', 'value' => '', 'help' => 'Tahun foto/dokumen dibuat bila diketahui.')) ?>
-				<?= ui_input(array('name' => 'people_shown', 'label' => 'Orang yang tampak', 'maxlength' => 255, 'value' => '',
-					'help' => 'Isi bila ada orang yang dapat dikenali; publikasi memerlukan izin mereka.')) ?>
-				<?= ui_select(array('name' => 'rights_status', 'label' => 'Status hak publikasi', 'required' => TRUE, 'options' => $rights_options, 'value' => 'owned')) ?>
-				<?= ui_input(array('name' => 'license_note', 'label' => 'Catatan lisensi', 'maxlength' => 255, 'value' => '')) ?>
-				<div class="custom-control custom-checkbox">
-					<input class="custom-control-input" type="checkbox" id="is_placeholder" name="is_placeholder" value="1">
-					<label class="custom-control-label" for="is_placeholder">Tandai sebagai placeholder (bukan foto asli desa)</label>
-				</div>
-			</div>
-			<div class="card-footer bg-white text-right">
-				<button class="btn btn-primary" type="submit">Unggah</button>
-			</div>
-		</form>
-	</div>
-
-	<div class="col-lg-8">
+	<div class="col-12">
 		<?php if (empty($items)): ?>
-			<div class="card shadow-sm"><div class="card-body empty-box"><i class="fas fa-images" aria-hidden="true"></i><p class="mb-0">Belum ada media.</p></div></div>
+			<div class="card shadow-sm"><div class="card-body empty-box"><i class="fas fa-images" aria-hidden="true"></i><p class="mb-0">Belum ada media. Klik “Unggah media” untuk menambahkan.</p></div></div>
 		<?php else: ?>
 			<?php foreach ($items as $item): ?>
 			<div class="card shadow-sm mb-3">
@@ -111,3 +82,30 @@
 		<?php endif; ?>
 	</div>
 </div>
+
+<?= ui_modal_open('modal-unggah-media', 'Unggah media', 'modal-lg') ?>
+	<form method="post" action="<?= site_url('admin/media') ?>" enctype="multipart/form-data" data-once>
+		<?= csrf_field() ?>
+		<div class="form-group">
+			<label for="berkas">Berkas <span class="required-mark" aria-hidden="true">*</span></label>
+			<input class="form-control-file" type="file" id="berkas" name="berkas[]" required accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" aria-describedby="berkas-help">
+			<small class="form-text" id="berkas-help">JPG, PNG, WebP, atau PDF. Maksimal 8 MB. Berkas asli disimpan di penyimpanan privat; yang tampil publik adalah salinan hasil olahan tanpa metadata EXIF.</small>
+		</div>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'alt_text', 'label' => 'Teks alternatif (alt)', 'maxlength' => 255, 'value' => '',
+				'help' => 'Deskripsi singkat isi gambar untuk pembaca layar.')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'caption', 'label' => 'Keterangan (caption)', 'maxlength' => 500, 'value' => '')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'source_credit', 'label' => 'Kredit/sumber', 'maxlength' => 255, 'value' => '')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'source_year', 'label' => 'Tahun sumber', 'type' => 'number', 'value' => '', 'help' => 'Tahun foto/dokumen dibuat bila diketahui.')) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'people_shown', 'label' => 'Orang yang tampak', 'maxlength' => 255, 'value' => '',
+				'help' => 'Isi bila ada orang yang dapat dikenali; publikasi memerlukan izin mereka.')) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'rights_status', 'label' => 'Status hak publikasi', 'required' => TRUE, 'options' => $rights_options, 'value' => 'owned')) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'license_note', 'label' => 'Catatan lisensi', 'maxlength' => 255, 'value' => '')) ?>
+		<div class="custom-control custom-checkbox">
+			<input class="custom-control-input" type="checkbox" id="is_placeholder" name="is_placeholder" value="1">
+			<label class="custom-control-label" for="is_placeholder">Tandai sebagai placeholder (bukan foto asli desa)</label>
+		</div>
+		<?= ui_modal_actions('Unggah') ?>
+	</form>
+<?= ui_modal_close() ?>

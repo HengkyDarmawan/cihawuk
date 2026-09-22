@@ -10,6 +10,7 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 		<h1>Audit Aset</h1>
 		<p>Daftar target dibekukan saat sesi diterbitkan. Temuan tidak pernah langsung menimpa data master.</p>
 	</div>
+	<?php if ($can_create): ?><div class="page-actions"><?= ui_add_button('modal-buat-sesi', 'Buat sesi audit') ?></div><?php endif; ?>
 </div>
 
 <?= ui_error_summary($this->form_errors) ?>
@@ -32,18 +33,17 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_create): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Buat sesi audit</h3>
-		<form method="post" action="<?= site_url('admin/audit-aset/buat') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-5"><?= ui_input(array('name' => 'name', 'label' => 'Nama sesi', 'maxlength' => 220, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'category_id', 'label' => 'Scope kategori', 'options' => $category_options)) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'location_id', 'label' => 'Scope lokasi', 'options' => $location_options)) ?></div>
-			</div>
-			<button class="btn btn-primary" type="submit">Buat draft sesi</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
+
+<?php if ($can_create): ?>
+<?= ui_modal_open('modal-buat-sesi', 'Buat sesi audit') ?>
+	<form method="post" action="<?= site_url('admin/audit-aset/buat') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'name', 'label' => 'Nama sesi', 'maxlength' => 220, 'required' => TRUE)) ?>
+		<?= ui_select(array('name' => 'category_id', 'label' => 'Scope kategori', 'options' => $category_options)) ?>
+		<?= ui_select(array('name' => 'location_id', 'label' => 'Scope lokasi', 'options' => $location_options)) ?>
+		<p class="small text-muted mb-0">Sesi dibuat sebagai draft; daftar target dibekukan saat sesi diterbitkan.</p>
+		<?= ui_modal_actions('Buat draft sesi') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

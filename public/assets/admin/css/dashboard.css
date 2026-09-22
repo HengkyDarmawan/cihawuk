@@ -195,3 +195,29 @@ div.dataTables_wrapper div.dataTables_processing { border-radius: 12px; }
 .inv-timeline li:last-child { padding-bottom: 0; }
 .inv-timeline-icon { position: relative; z-index: 1; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: .85rem; box-shadow: 0 0 0 4px #fff; }
 .inv-timeline-body { padding-top: 6px; min-width: 0; }
+
+/* Tombol tambah + modal form (form tambah tidak lagi ditempel di bawah tabel). */
+.page-heading .page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.card-header.card-header-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.card-header-actions .btn { padding: .3rem .75rem; font-size: .875rem; }
+.btn-add { font-weight: 700; border-radius: 10px; white-space: nowrap; }
+@media (max-width: 575.98px) {
+	.page-heading .page-actions, .page-heading .page-actions .btn { width: 100%; }
+}
+.form-modal .modal-content { border: 0; border-radius: 16px; box-shadow: 0 24px 60px rgba(16, 57, 45, .25); }
+.form-modal .modal-header { background: var(--chw-primary); color: #fff; border-radius: 16px 16px 0 0; border: 0; padding: 14px 20px; }
+.form-modal .modal-title { font-weight: 800; color: #fff; margin: 0; }
+.form-modal .modal-header .close { color: #fff; opacity: .85; text-shadow: none; }
+.form-modal .modal-header .close:hover { opacity: 1; }
+.form-modal .modal-body { padding: 20px; }
+.form-modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--chw-border); margin: 20px -20px -20px; padding: 14px 20px; background: #FAFCFB; border-radius: 0 0 16px 16px; }
+.form-modal .form-text { font-size: .8rem; }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--chw-muted); }
+.empty-state .btn { margin-top: 12px; }
+
+/* SweetAlert2 */
+.chw-swal { border-radius: 16px !important; font-family: "Manrope", system-ui, sans-serif; }
+.chw-swal .swal2-title { color: var(--chw-ink); font-size: 1.3rem; }
+.chw-swal .swal2-actions .swal2-styled { border-radius: 10px; font-weight: 700; }
+.chw-toast { font-family: "Manrope", system-ui, sans-serif; border-radius: 12px !important; }
+.chw-toast .swal2-title { font-size: .95rem !important; color: var(--chw-ink); }

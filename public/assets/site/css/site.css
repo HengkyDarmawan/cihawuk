@@ -644,3 +644,43 @@ textarea.form-control { min-height: 160px; }
 	.org-chart { overflow: visible; }
 	.org-chart .org-card { box-shadow: none; }
 }
+
+/* Halaman masuk & akun: dua panel (identitas desa + kartu form). */
+.auth-shell { place-items: start center; padding: 24px 16px 64px; }
+@media (min-width: 992px) { .auth-shell { place-items: center; padding: 40px 16px 72px; } }
+.auth-split { width: 100%; max-width: 1040px; display: grid; grid-template-columns: 1fr; border-radius: 24px; overflow: hidden; background: #fff; box-shadow: var(--shadow-lift); border: 1px solid var(--color-border); }
+.auth-split.is-wide { max-width: 1120px; }
+.auth-split > .auth-card { max-width: none; box-shadow: none; border: 0; border-radius: 0; padding: clamp(24px, 4vw, 48px); background: #fff; }
+.auth-brand { display: none; position: relative; overflow: hidden; color: #fff; background:
+	radial-gradient(520px 320px at 100% 0%, rgba(215,175,103,.28), transparent 60%),
+	linear-gradient(160deg, #174B3A 0%, #0E3328 100%); }
+.auth-brand-inner { position: relative; z-index: 1; padding: 48px 44px; display: flex; flex-direction: column; gap: 16px; height: 100%; }
+.auth-brand-logo { display: flex; align-items: center; gap: 12px; margin-bottom: auto; }
+.auth-brand-logo strong { display: block; font-size: 1.125rem; font-weight: 800; }
+.auth-brand-logo span { display: block; font-size: .8125rem; opacity: .75; }
+.auth-brand h2 { font-family: var(--font-display); font-size: clamp(1.75rem, 2.6vw, 2.25rem); line-height: 1.15; color: #fff; margin: 40px 0 0; }
+.auth-brand p { color: rgba(255,255,255,.82); margin: 0; }
+.auth-brand-points { list-style: none; padding: 0; margin: 12px 0 64px; display: grid; gap: 12px; }
+.auth-brand-points li { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+.auth-brand-points .icon { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,.1); color: var(--color-accent); flex: none; }
+.auth-brand-hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 140px; }
+@media (min-width: 992px) {
+	.auth-split { grid-template-columns: 5fr 6fr; min-height: 600px; }
+	.auth-split.is-wide { grid-template-columns: 4fr 6fr; }
+	.auth-brand { display: block; }
+	.auth-split > .auth-card { display: flex; flex-direction: column; justify-content: center; }
+}
+.auth-card .auth-form-inner { width: 100%; max-width: 440px; margin: 0 auto; }
+.auth-split.is-wide .auth-form-inner { max-width: 540px; }
+.auth-card .eyebrow { color: var(--color-accent-dark); }
+.auth-card .btn-lg { min-height: 52px; border-radius: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.auth-links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: -4px 0 24px; font-size: .9375rem; }
+.auth-links a { font-weight: 600; }
+.auth-inline-error { font-size: .9375rem; }
+
+/* SweetAlert2 di situs publik */
+.chw-swal { border-radius: 20px !important; font-family: var(--font-body); }
+.chw-swal .swal2-title { color: var(--color-ink); font-size: 1.35rem; }
+.chw-swal .swal2-actions .swal2-styled { border-radius: 12px; font-weight: 700; }
+.chw-toast { font-family: var(--font-body); border-radius: 14px !important; }
+.chw-toast .swal2-title { font-size: .95rem !important; color: var(--color-ink); }

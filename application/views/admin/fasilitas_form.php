@@ -87,7 +87,7 @@ foreach ($sources as $source) { $source_options[(string) $source->id] = $source-
 		<li class="list-group-item d-flex justify-content-between align-items-center">
 			<span><strong><?= e($service->label) ?></strong><?= $service->description ? ' — '.e($service->description) : '' ?></span>
 			<?php if ($can_edit): ?>
-			<form method="post" action="<?= site_url('admin/fasilitas/'.rawurlencode($facility->public_id).'/layanan/hapus') ?>" data-once>
+			<form method="post" action="<?= site_url('admin/fasilitas/'.rawurlencode($facility->public_id).'/layanan/hapus') ?>" data-once data-confirm="Layanan <?= e($service->label) ?> akan dihapus dari fasilitas ini." data-confirm-title="Hapus layanan?" data-confirm-ok="Ya, hapus" data-confirm-danger>
 				<?= csrf_field() ?><input type="hidden" name="service_id" value="<?= (int) $service->id ?>">
 				<button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
 			</form>

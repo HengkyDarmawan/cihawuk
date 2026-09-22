@@ -31,7 +31,10 @@ $qty = function ($value) { return rtrim(rtrim(number_format((float) $value, 3, '
 	</div>
 	<div class="col-lg-6">
 		<div class="card shadow-sm h-100">
-			<div class="card-header"><h2 class="h6 mb-0">Konversi satuan</h2></div>
+			<div class="card-header card-header-actions">
+				<h2 class="h6 mb-0">Konversi satuan</h2>
+				<?php if ($can_edit): ?><?= ui_add_button('modal-tambah-konversi', 'Tambah konversi') ?><?php endif; ?>
+			</div>
 			<ul class="list-group list-group-flush">
 				<?php foreach ($conversions as $conversion): ?>
 					<li class="list-group-item">1 <?= e($conversion->from_unit) ?> =
@@ -40,18 +43,6 @@ $qty = function ($value) { return rtrim(rtrim(number_format((float) $value, 3, '
 				<?php endforeach; ?>
 				<?php if (empty($conversions)): ?><li class="list-group-item text-muted">Belum ada konversi.</li><?php endif; ?>
 			</ul>
-			<?php if ($can_edit): ?>
-			<div class="card-body border-top">
-				<form class="form-inline" method="post" action="<?= $base ?>/konversi" data-once>
-					<?= csrf_field() ?>
-					<input class="form-control form-control-sm mr-1" type="text" name="from_unit" maxlength="30" placeholder="Satuan asal" aria-label="Satuan asal" required>
-					<input class="form-control form-control-sm mr-1" type="number" name="numerator" min="1" placeholder="Numerator" aria-label="Numerator" required>
-					<input class="form-control form-control-sm mr-1" type="number" name="denominator" min="1" value="1" aria-label="Denominator">
-					<button class="btn btn-sm btn-outline-primary" type="submit">Simpan</button>
-				</form>
-				<p class="small text-muted mt-2 mb-0">Numerator dan denominator harus bilangan bulat positif; konversi yang menghasilkan pecahan ditolak.</p>
-			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 </div>
@@ -87,3 +78,19 @@ $qty = function ($value) { return rtrim(rtrim(number_format((float) $value, 3, '
 		</table>
 	</div>
 </div>
+
+<?php if ($can_edit): ?>
+<?= ui_modal_open('modal-tambah-konversi', 'Tambah konversi satuan') ?>
+	<form method="post" action="<?= $base ?>/konversi" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'from_unit', 'label' => 'Satuan asal', 'maxlength' => 30, 'required' => TRUE,
+			'help' => '1 satuan asal = numerator/denominator '.$item->base_unit.'.')) ?>
+		<div class="form-row">
+			<div class="col-sm-6"><?= ui_input(array('name' => 'numerator', 'label' => 'Numerator', 'type' => 'number', 'required' => TRUE, 'raw_attrs' => 'min="1"')) ?></div>
+			<div class="col-sm-6"><?= ui_input(array('name' => 'denominator', 'label' => 'Denominator', 'type' => 'number', 'value' => '1', 'raw_attrs' => 'min="1"')) ?></div>
+		</div>
+		<p class="small text-muted mb-0">Numerator dan denominator harus bilangan bulat positif; konversi yang menghasilkan pecahan ditolak.</p>
+		<?= ui_modal_actions('Simpan') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

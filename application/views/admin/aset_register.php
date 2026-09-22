@@ -40,14 +40,20 @@ $without_qr = count(array_filter($qr_status, function ($s) { return $s !== 'acti
 <?= ui_error_summary($this->form_errors) ?>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+	<div class="card-header card-header-actions">
 		<h2 class="h6 mb-0">Unit fisik</h2>
+		<div class="d-flex flex-wrap align-items-center" style="gap:8px">
+		<?php if ($can_create): ?>
+			<?= ui_add_button('modal-tambah-unit', 'Tambah unit') ?>
+			<?= ui_add_button('modal-pecah-unit', 'Buat banyak unit', 'btn-outline-primary') ?>
+		<?php endif; ?>
 		<?php if ($can_labels && ! empty($units)): ?>
 		<div class="d-flex align-items-center">
 			<?php if ($without_qr > 0): ?><span class="small text-muted mr-2"><?= (int) $without_qr ?> unit belum ber-QR (dibuat otomatis saat dicetak)</span><?php endif; ?>
 			<button class="btn btn-outline-primary btn-sm" type="submit" form="label-form" data-label-selected disabled><i class="fas fa-print fa-sm mr-1" aria-hidden="true"></i> Cetak QR terpilih</button>
 		</div>
 		<?php endif; ?>
+		</div>
 	</div>
 	<?php if ($can_labels): ?>
 	<form id="label-form" method="post" action="<?= site_url('admin/aset/label') ?>" target="_blank"><?= csrf_field() ?></form>
@@ -71,43 +77,12 @@ $without_qr = count(array_filter($qr_status, function ($s) { return $s !== 'acti
 						<td><?= $has_qr ? '<span class="badge badge-pill badge-success"><i class="fas fa-qrcode" aria-hidden="true"></i> Ada</span>' : '<span class="badge badge-pill badge-light border">Belum</span>' ?></td>
 					</tr>
 				<?php endforeach; ?>
-				<?php if (empty($units)): ?><tr><td colspan="<?= $can_labels ? 7 : 6 ?>" class="text-muted text-center py-4">Belum ada unit fisik. Tambahkan di bawah.</td></tr><?php endif; ?>
+				<?php if (empty($units)): ?><tr><td colspan="<?= $can_labels ? 7 : 6 ?>" class="text-muted text-center py-4">Belum ada unit fisik. Klik <strong>Tambah unit</strong> di atas.</td></tr><?php endif; ?>
 				</tbody>
 			</table>
 		</div>
 		<p class="small text-muted mt-3 mb-0">Unit berstatus <strong>Draft</strong> belum tampil di halaman publik saat QR-nya dipindai. Ubah statusnya menjadi <strong>Aktif</strong> di halaman unit.</p>
 	</div>
-	<?php if ($can_create): ?>
-	<div class="card-body border-top">
-		<div class="row">
-			<div class="col-lg-7 mb-3 mb-lg-0">
-				<h3 class="h6 font-weight-bold">Tambah satu unit</h3>
-				<form method="post" action="<?= $base ?>/unit" data-once>
-					<?= csrf_field() ?>
-					<div class="form-row">
-						<div class="col-md-6"><?= ui_input(array('name' => 'asset_tag', 'label' => 'Kode aset (label)', 'maxlength' => 60, 'required' => TRUE)) ?></div>
-						<div class="col-md-6"><?= ui_select(array('name' => 'location_id', 'label' => 'Lokasi', 'options' => $location_options)) ?></div>
-						<div class="col-md-6"><?= ui_input(array('name' => 'brand', 'label' => 'Merek', 'maxlength' => 120)) ?></div>
-						<div class="col-md-6"><?= ui_input(array('name' => 'model', 'label' => 'Tipe', 'maxlength' => 120)) ?></div>
-					</div>
-					<button class="btn btn-outline-primary" type="submit">Tambah unit</button>
-				</form>
-			</div>
-			<div class="col-lg-5">
-				<h3 class="h6 font-weight-bold">Buat banyak unit sekaligus</h3>
-				<form method="post" action="<?= $base ?>/pecah-unit" data-once>
-					<?= csrf_field() ?>
-					<div class="form-row">
-						<div class="col-5"><?= ui_input(array('name' => 'count', 'label' => 'Jumlah', 'type' => 'number', 'required' => TRUE)) ?></div>
-						<div class="col-7"><?= ui_input(array('name' => 'tag_prefix', 'label' => 'Awalan kode', 'maxlength' => 30)) ?></div>
-					</div>
-					<?= ui_input(array('name' => 'reason', 'label' => 'Alasan', 'maxlength' => 500, 'required' => TRUE, 'help' => 'Contoh: dokumen menyebut 2 unit, keduanya ada di kantor.')) ?>
-					<button class="btn btn-outline-primary" type="submit">Buat unit</button>
-				</form>
-			</div>
-		</div>
-	</div>
-	<?php endif; ?>
 </div>
 
 <div class="card shadow-sm">
@@ -149,3 +124,30 @@ $without_qr = count(array_filter($qr_status, function ($s) { return $s !== 'acti
 		</form>
 	</div>
 </div>
+
+<?php if ($can_create): ?>
+<?= ui_modal_open('modal-tambah-unit', 'Tambah satu unit') ?>
+	<form method="post" action="<?= $base ?>/unit" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'asset_tag', 'label' => 'Kode aset (label)', 'maxlength' => 60, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'location_id', 'label' => 'Lokasi', 'options' => $location_options)) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'brand', 'label' => 'Merek', 'maxlength' => 120)) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'model', 'label' => 'Tipe', 'maxlength' => 120)) ?></div>
+		</div>
+		<?= ui_modal_actions('Tambah unit') ?>
+	</form>
+<?= ui_modal_close() ?>
+
+<?= ui_modal_open('modal-pecah-unit', 'Buat banyak unit sekaligus') ?>
+	<form method="post" action="<?= $base ?>/pecah-unit" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-5"><?= ui_input(array('name' => 'count', 'label' => 'Jumlah', 'type' => 'number', 'required' => TRUE)) ?></div>
+			<div class="col-7"><?= ui_input(array('name' => 'tag_prefix', 'label' => 'Awalan kode', 'maxlength' => 30)) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'reason', 'label' => 'Alasan', 'maxlength' => 500, 'required' => TRUE, 'help' => 'Contoh: dokumen menyebut 2 unit, keduanya ada di kantor.')) ?>
+		<?= ui_modal_actions('Buat unit') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

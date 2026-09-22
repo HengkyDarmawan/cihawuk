@@ -86,7 +86,7 @@ foreach ($blocks as $block) { $by_key[$block->block_key] = $block; }
 </div>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Linimasa kepemimpinan</h2></div>
+	<div class="card-header card-header-actions"><h2 class="h6 mb-0">Linimasa kepemimpinan</h2><?php if ($can_edit): ?><?= ui_add_button('modal-tambah-periode', 'Tambah periode') ?><?php endif; ?></div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Periode</th><th scope="col">Nama</th><th scope="col">Jabatan</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead>
@@ -110,25 +110,6 @@ foreach ($blocks as $block) { $by_key[$block->block_key] = $block; }
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_edit): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Tambah periode</h3>
-		<form method="post" action="<?= site_url('admin/profil/periode/simpan') ?>" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-4"><?= ui_input(array('name' => 'person_name', 'label' => 'Nama', 'maxlength' => 150, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_input(array('name' => 'position_title', 'label' => 'Jabatan', 'maxlength' => 150, 'value' => 'Kepala Desa')) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'year_start', 'label' => 'Tahun mulai', 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_input(array('name' => 'year_end', 'label' => 'Tahun selesai')) ?></div>
-			</div>
-			<div class="form-check mb-3">
-				<input class="form-check-input" type="checkbox" id="ongoing_claim" name="ongoing_claim" value="1">
-				<label class="form-check-label" for="ongoing_claim">Sumber menulis &ldquo;sampai sekarang&rdquo; (tanpa tahun selesai)</label>
-			</div>
-			<button class="btn btn-outline-primary" type="submit">Simpan periode</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php if ($snapshots): ?>
@@ -160,4 +141,23 @@ foreach ($blocks as $block) { $by_key[$block->block_key] = $block; }
 		</table>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if ($can_edit): ?>
+<?= ui_modal_open('modal-tambah-periode', 'Tambah periode kepemimpinan') ?>
+	<form method="post" action="<?= site_url('admin/profil/periode/simpan') ?>" data-once>
+		<?= csrf_field() ?>
+		<?= ui_input(array('name' => 'person_name', 'label' => 'Nama', 'maxlength' => 150, 'required' => TRUE)) ?>
+		<?= ui_input(array('name' => 'position_title', 'label' => 'Jabatan', 'maxlength' => 150, 'value' => 'Kepala Desa')) ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_input(array('name' => 'year_start', 'label' => 'Tahun mulai', 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_input(array('name' => 'year_end', 'label' => 'Tahun selesai')) ?></div>
+		</div>
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="ongoing_claim" name="ongoing_claim" value="1">
+			<label class="form-check-label" for="ongoing_claim">Sumber menulis &ldquo;sampai sekarang&rdquo; (tanpa tahun selesai)</label>
+		</div>
+		<?= ui_modal_actions('Simpan periode') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>

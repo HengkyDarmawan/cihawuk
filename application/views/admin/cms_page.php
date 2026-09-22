@@ -41,7 +41,10 @@ $status_labels = array(
 		</form>
 
 		<div class="card shadow-sm">
-			<div class="card-header"><h2 class="h6 mb-0">Section pada halaman</h2></div>
+			<div class="card-header card-header-actions">
+				<h2 class="h6 mb-0">Section pada halaman</h2>
+				<?php if ($can('cms.page.create')): ?><?= ui_add_button('modal-tambah-section', 'Tambah section') ?><?php endif; ?>
+			</div>
 			<?php if (empty($sections)): ?>
 				<div class="card-body empty-box"><i class="fas fa-layer-group" aria-hidden="true"></i><p class="mb-0">Belum ada section.</p></div>
 			<?php else: ?>
@@ -86,21 +89,6 @@ $status_labels = array(
 				<?php endforeach; ?>
 			</ul>
 			<?php endif; ?>
-			<?php if ($can('cms.page.create')): ?>
-			<div class="card-footer bg-white">
-				<form method="post" action="<?= site_url('admin/cms/section/tambah') ?>" class="form-inline">
-					<?= csrf_field() ?>
-					<input type="hidden" name="page_key" value="<?= e($page->page_key) ?>">
-					<label class="sr-only" for="section_type">Jenis section</label>
-					<select class="form-control form-control-sm form-select mr-2" id="section_type" name="section_type">
-						<?php foreach ($section_types as $code => $definition): ?>
-							<option value="<?= e($code) ?>"><?= e($definition['label']) ?></option>
-						<?php endforeach; ?>
-					</select>
-					<button class="btn btn-outline-primary btn-sm" type="submit">Tambah section</button>
-				</form>
-			</div>
-			<?php endif; ?>
 		</div>
 	</div>
 
@@ -130,3 +118,22 @@ $status_labels = array(
 		</div>
 	</div>
 </div>
+
+<?php if ($can('cms.page.create')): ?>
+<?= ui_modal_open('modal-tambah-section', 'Tambah section') ?>
+	<form method="post" action="<?= site_url('admin/cms/section/tambah') ?>">
+		<?= csrf_field() ?>
+		<input type="hidden" name="page_key" value="<?= e($page->page_key) ?>">
+		<div class="form-group mb-2">
+			<label for="section_type">Jenis section</label>
+			<select class="form-control form-select" id="section_type" name="section_type">
+				<?php foreach ($section_types as $code => $definition): ?>
+					<option value="<?= e($code) ?>"><?= e($definition['label']) ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<p class="small text-muted mb-0">Jenis section berasal dari daftar yang disediakan pengembang. Section baru tersimpan sebagai draft.</p>
+		<?= ui_modal_actions('Tambah section') ?>
+	</form>
+<?= ui_modal_close() ?>
+<?php endif; ?>

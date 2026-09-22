@@ -45,7 +45,10 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 <?php endif; ?>
 
 <div class="card shadow-sm mb-4">
-	<div class="card-header"><h2 class="h6 mb-0">Temuan</h2></div>
+	<div class="card-header card-header-actions">
+		<h2 class="h6 mb-0">Temuan</h2>
+		<?php if ($can_perform && $session->status === 'published'): ?><?= ui_add_button('modal-catat-temuan', 'Catat temuan') ?><?php endif; ?>
+	</div>
 	<div class="table-responsive">
 		<table class="table mb-0">
 			<thead><tr><th scope="col">Asset tag</th><th scope="col">Keberadaan</th><th scope="col">Kondisi</th><th scope="col">Status</th><th scope="col">Aksi</th></tr></thead>
@@ -77,22 +80,6 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 			</tbody>
 		</table>
 	</div>
-	<?php if ($can_perform && $session->status === 'published'): ?>
-	<div class="card-body border-top">
-		<h3 class="h6">Catat temuan</h3>
-		<form method="post" action="<?= $base ?>/temuan" data-once>
-			<?= csrf_field() ?>
-			<div class="form-row">
-				<div class="col-md-3"><?= ui_select(array('name' => 'target_id', 'label' => 'Unit', 'options' => $target_options, 'required' => TRUE)) ?></div>
-				<div class="col-md-3"><?= ui_select(array('name' => 'existence_result', 'label' => 'Keberadaan', 'options' => $existence, 'required' => TRUE)) ?></div>
-				<div class="col-md-2"><?= ui_select(array('name' => 'observed_condition', 'label' => 'Kondisi', 'options' => $conditions, 'required' => TRUE)) ?></div>
-				<div class="col-md-4"><?= ui_select(array('name' => 'observed_location_id', 'label' => 'Lokasi ditemukan', 'options' => $location_options)) ?></div>
-			</div>
-			<?= ui_input(array('name' => 'note', 'label' => 'Catatan', 'maxlength' => 600)) ?>
-			<button class="btn btn-outline-primary" type="submit">Simpan temuan</button>
-		</form>
-	</div>
-	<?php endif; ?>
 </div>
 
 <?php if ($can_verify): ?>
@@ -124,4 +111,20 @@ foreach ($locations as $location) { $location_options[(string) $location->id] = 
 		<?php endif; ?>
 	</div>
 </div>
+<?php endif; ?>
+
+<?php if ($can_perform && $session->status === 'published'): ?>
+<?= ui_modal_open('modal-catat-temuan', 'Catat temuan', 'modal-lg') ?>
+	<form method="post" action="<?= $base ?>/temuan" data-once>
+		<?= csrf_field() ?>
+		<div class="form-row">
+			<div class="col-md-6"><?= ui_select(array('name' => 'target_id', 'label' => 'Unit', 'options' => $target_options, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'existence_result', 'label' => 'Keberadaan', 'options' => $existence, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'observed_condition', 'label' => 'Kondisi', 'options' => $conditions, 'required' => TRUE)) ?></div>
+			<div class="col-md-6"><?= ui_select(array('name' => 'observed_location_id', 'label' => 'Lokasi ditemukan', 'options' => $location_options)) ?></div>
+		</div>
+		<?= ui_input(array('name' => 'note', 'label' => 'Catatan', 'maxlength' => 600)) ?>
+		<?= ui_modal_actions('Simpan temuan') ?>
+	</form>
+<?= ui_modal_close() ?>
 <?php endif; ?>
