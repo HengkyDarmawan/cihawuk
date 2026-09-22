@@ -939,7 +939,12 @@ class CmsService {
 				return array('items' => $this->CI->content->posts(array('news', 'announcement'), NULL, (int) ($config['limit'] ?? 4)));
 
 			case 'upcoming_agenda':
-				return array('items' => $this->CI->content->events(TRUE, (int) ($config['limit'] ?? 4)));
+				$month = agenda_month();
+				return array(
+					'items' => $this->CI->content->events(TRUE, (int) ($config['limit'] ?? 4)),
+					'month' => $month,
+					'weeks' => agenda_month_grid($month, $this->CI->content->events_between($month['from_utc'], $month['to_utc'])),
+				);
 
 			case 'gallery_preview':
 				$ids = $config['gallery_id'] ?? array();

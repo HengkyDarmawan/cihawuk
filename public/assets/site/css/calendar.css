@@ -1,0 +1,80 @@
+/* Kalender agenda desa (halaman /agenda dan section beranda). */
+.filter-chips .chip { display: inline-flex; align-items: center; gap: 6px; }
+.cal { background: #fff; border: 1px solid var(--color-border); border-radius: 22px; box-shadow: var(--shadow-card); overflow: hidden; }
+.cal-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px; background: linear-gradient(135deg, #174B3A, #0E3328); color: #fff; }
+.cal-title { font-family: var(--font-display); font-size: 1.5rem; margin: 0; color: #fff; flex: 1; text-align: center; }
+.cal-compact .cal-title { text-align: left; font-size: 1.2rem; }
+.cal-nav { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: rgba(255,255,255,.1); text-decoration: none; }
+.cal-nav:hover, .cal-nav:focus-visible { background: rgba(255,255,255,.2); color: #fff; }
+.cal-today-btn { color: #182B24; background: var(--color-accent); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: .875rem; text-decoration: none; }
+.cal-today-btn:hover { color: #182B24; filter: brightness(1.05); }
+.cal-link { color: #fff; font-weight: 600; font-size: .875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.cal-link:hover { color: var(--color-accent); }
+
+.cal-grid { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0; }
+.cal-grid th { padding: 10px 4px; text-align: center; font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); background: var(--color-primary-soft); }
+.cal-grid th.is-weekend { color: #A3261B; }
+.cal-day { vertical-align: top; height: 118px; padding: 6px; border: 1px solid #EDF2EE; background: #fff; }
+.cal-day.is-out { background: #FAFBFA; }
+.cal-day.is-out .cal-num { color: #B7C4BC; }
+.cal-day.is-weekend .cal-num { color: #A3261B; }
+.cal-day.is-out.is-weekend .cal-num { color: #E0B8B3; }
+
+.cal-date { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px; border-radius: 999px; color: inherit; font: inherit; }
+button.cal-date { cursor: pointer; }
+.cal-num { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 999px; font-weight: 700; font-size: .9375rem; color: var(--color-ink); }
+.cal-day.is-today .cal-num { background: var(--color-accent); color: #182B24; }
+button.cal-date:hover .cal-num, button.cal-date:focus-visible .cal-num { background: var(--color-primary-soft); }
+.cal-day.is-today button.cal-date:hover .cal-num { background: var(--color-accent); }
+.cal-dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: var(--color-primary); }
+
+.cal-events { display: grid; gap: 4px; margin-top: 4px; }
+.cal-pill { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; padding: 4px 8px; border-radius: 8px; background: #E6EFEA; border-left: 3px solid var(--color-accent); color: #10392D; font-size: .78rem; font-weight: 600; line-height: 1.3; text-decoration: none; overflow: hidden; }
+.cal-pill:hover, .cal-pill:focus-visible { background: #174B3A; color: #fff; }
+.cal-pill-time { font-variant-numeric: tabular-nums; font-weight: 800; opacity: .8; }
+.cal-more { border: 0; background: none; padding: 2px 8px; text-align: left; font-size: .75rem; font-weight: 700; color: var(--color-accent-dark); cursor: pointer; }
+.cal-more:hover { text-decoration: underline; }
+
+.cal-legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 12px 4px 0; font-size: .875rem; color: var(--color-muted); }
+.cal-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legend-today { width: 14px; height: 14px; border-radius: 50%; background: var(--color-accent); }
+.cal-legend-event { width: 18px; height: 10px; border-radius: 4px; background: #E6EFEA; border-left: 3px solid var(--color-accent); }
+
+/* Ringkas: hanya angka + titik; klik tanggal membuka daftar. */
+.cal-compact .cal-day { height: auto; padding: 4px 2px; text-align: center; }
+.cal-compact .cal-date { flex-direction: column; gap: 2px; }
+.cal-compact .cal-dot { display: block; }
+.cal-compact .cal-num { min-width: 32px; height: 32px; font-size: .875rem; }
+.cal-compact .has-events:not(.is-today) .cal-num { background: var(--color-primary-soft); color: var(--color-primary-dark); }
+
+@media (max-width: 767.98px) {
+	.cal-head { padding: 12px 14px; }
+	.cal-title { font-size: 1.2rem; }
+	.cal-day { height: auto; padding: 4px 2px; text-align: center; }
+	.cal-events { display: none; }
+	.cal-date { flex-direction: column; gap: 2px; }
+	.cal-dot { display: block; }
+	.cal-num { min-width: 32px; height: 32px; font-size: .875rem; }
+	.has-events:not(.is-today) .cal-num { background: var(--color-primary-soft); color: var(--color-primary-dark); }
+	.cal-grid th { font-size: .6875rem; padding: 8px 0; letter-spacing: 0; }
+}
+
+/* Section beranda: kalender mini + daftar terdekat */
+.agenda-home { display: grid; gap: 24px; align-items: start; }
+@media (min-width: 992px) { .agenda-home { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } }
+
+/* Popup SweetAlert2 */
+.cal-swal .swal2-title { font-family: var(--font-display); font-size: 1.4rem; padding-top: 1.4em; }
+.cal-swal .swal2-html-container { text-align: left; margin: 12px 1.4em 0; font-size: .975rem; }
+.cal-swal-poster { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; margin-bottom: 12px; }
+.cal-swal-meta { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.cal-swal-meta li { display: flex; gap: 10px; align-items: flex-start; color: var(--color-ink); }
+.cal-swal-ico { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--color-primary-soft); color: var(--color-primary); }
+.cal-swal-ico .icon { width: 16px; height: 16px; }
+.cal-swal-summary { background: #F7F9F6; border-radius: 12px; padding: 12px 14px; margin: 0; color: var(--color-muted); line-height: 1.55; }
+.cal-swal-count { text-align: center; color: var(--color-muted); margin: -4px 0 12px; }
+.cal-swal-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.cal-swal-item { width: 100%; display: flex; gap: 12px; align-items: center; text-align: left; border: 1px solid var(--color-border); background: #fff; border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+.cal-swal-item:hover, .cal-swal-item:focus-visible { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.cal-swal-item .cal-pill-time { background: var(--color-primary); color: #fff; border-radius: 8px; padding: 4px 8px; opacity: 1; }
+.cal-swal-item small { display: block; color: var(--color-muted); }

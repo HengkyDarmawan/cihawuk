@@ -129,6 +129,11 @@ class Public_Controller extends MY_Controller {
 				$js['vendor/leaflet/leaflet.js'] = TRUE;
 				$js['site/js/map.js'] = TRUE;
 			}
+			if ($type === 'upcoming_agenda')
+			{
+				$css['site/css/calendar.css'] = TRUE;
+				$js['site/js/calendar.js'] = TRUE;
+			}
 			if ($type === 'hero' && ($section['config']['mode'] ?? '') === 'three' && ! empty($features['three_hero']))
 			{
 				$js['site/js/hero-loader.js'] = TRUE;

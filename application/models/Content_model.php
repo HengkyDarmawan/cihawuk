@@ -337,6 +337,20 @@ class Content_model extends CI_Model {
 		return $rows;
 	}
 
+	/** Kegiatan yang bersinggungan dengan rentang [from, to) UTC; kegiatan lintas hari ikut. */
+	public function events_between($from_utc, $to_utc)
+	{
+		$this->db->from('events')->where('deleted_at IS NULL', NULL, FALSE);
+		$this->publication_scope();
+		$this->db->where('starts_at <', $to_utc)->where('COALESCE(ends_at, starts_at) >=', $from_utc);
+		$rows = $this->db->order_by('starts_at', 'ASC')->limit(300)->get()->result();
+		foreach ($rows as $row)
+		{
+			$row->poster = $this->media($row->poster_media_id);
+		}
+		return $rows;
+	}
+
 	public function count_events($upcoming = TRUE)
 	{
 		$this->event_query($upcoming);

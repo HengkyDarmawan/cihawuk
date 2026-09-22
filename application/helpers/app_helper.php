@@ -441,3 +441,113 @@ if ( ! function_exists('nav_href'))
 		return e($url);
 	}
 }
+
+if ( ! function_exists('agenda_month'))
+{
+	/**
+	 * Rentang satu bulan kalender dalam WIB dari "YYYY-MM" (tidak valid -> bulan ini).
+	 * Mengembalikan batas lokal, batas UTC untuk query, label, serta bulan sebelum/berikutnya.
+	 */
+	function agenda_month($ym = NULL)
+	{
+		$tz = local_tz();
+		$now = new DateTimeImmutable('now', $tz);
+		$year = (int) $now->format('Y');
+		$month = (int) $now->format('n');
+		if (is_string($ym) && preg_match('/^(\d{4})-(\d{2})$/', $ym, $m) && (int) $m[2] >= 1 && (int) $m[2] <= 12
+			&& abs((int) $m[1] - $year) <= 10)
+		{
+			$year = (int) $m[1];
+			$month = (int) $m[2];
+		}
+		$start = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $year, $month), $tz);
+		$end = $start->modify('+1 month');
+		$months = array(1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember');
+		$utc = new DateTimeZone('UTC');
+		return array(
+			'start' => $start,
+			'end' => $end,
+			'from_utc' => $start->setTimezone($utc)->format('Y-m-d H:i:s'),
+			'to_utc' => $end->setTimezone($utc)->format('Y-m-d H:i:s'),
+			'key' => $start->format('Y-m'),
+			'label' => $months[$month].' '.$year,
+			'prev' => $start->modify('-1 month')->format('Y-m'),
+			'next' => $end->format('Y-m'),
+			'is_current' => $start->format('Y-m') === $now->format('Y-m'),
+			'today' => $now->format('Y-m-d'),
+		);
+	}
+}
+
+if ( ! function_exists('agenda_event_payload'))
+{
+	/** Data kegiatan untuk popup kalender (dikirim sebagai atribut data-event, di-escape di view dan JS). */
+	function agenda_event_payload($ev)
+	{
+		$tz = local_tz();
+		$start = (new DateTimeImmutable($ev->starts_at, new DateTimeZone('UTC')))->setTimezone($tz);
+		$end = $ev->ends_at ? (new DateTimeImmutable($ev->ends_at, new DateTimeZone('UTC')))->setTimezone($tz) : NULL;
+		$when = format_wib($ev->starts_at);
+		if ($end)
+		{
+			$when .= $end->format('Y-m-d') === $start->format('Y-m-d')
+				? ' – '.format_wib($ev->ends_at, 'time')
+				: ' – '.format_wib($ev->ends_at);
+		}
+		return array(
+			'title' => (string) $ev->title,
+			'when' => $when,
+			'time' => $start->format('H.i'),
+			'location' => (string) $ev->location_text,
+			'organizer' => (string) ($ev->organizer ?? ''),
+			'summary' => (string) $ev->summary,
+			'poster' => ! empty($ev->poster) ? media_url($ev->poster) : '',
+			'url' => site_url('agenda/'.rawurlencode($ev->slug)),
+		);
+	}
+}
+
+if ( ! function_exists('agenda_month_grid'))
+{
+	/**
+	 * Grid kalender Senin–Minggu untuk bulan dari agenda_month(). Kegiatan lintas hari
+	 * dimasukkan ke setiap tanggal yang dilaluinya (dalam WIB).
+	 */
+	function agenda_month_grid(array $month, array $events)
+	{
+		$tz = local_tz();
+		$by_day = array();
+		foreach ($events as $ev)
+		{
+			$s = (new DateTimeImmutable($ev->starts_at, new DateTimeZone('UTC')))->setTimezone($tz)->setTime(0, 0);
+			$e = $ev->ends_at ? (new DateTimeImmutable($ev->ends_at, new DateTimeZone('UTC')))->setTimezone($tz)->setTime(0, 0) : $s;
+			if ($e < $s) { $e = $s; }
+			for ($d = $s, $guard = 0; $d <= $e && $guard < 62; $d = $d->modify('+1 day'), $guard++)
+			{
+				$by_day[$d->format('Y-m-d')][] = $ev;
+			}
+		}
+		$first = $month['start'];
+		$cursor = $first->modify('-'.((int) $first->format('N') - 1).' days');
+		$weeks = array();
+		do
+		{
+			$week = array();
+			for ($i = 0; $i < 7; $i++)
+			{
+				$key = $cursor->format('Y-m-d');
+				$week[] = array(
+					'date' => $key,
+					'day' => (int) $cursor->format('j'),
+					'in_month' => $cursor->format('Y-m') === $month['key'],
+					'is_today' => $key === $month['today'],
+					'events' => $by_day[$key] ?? array(),
+				);
+				$cursor = $cursor->modify('+1 day');
+			}
+			$weeks[] = $week;
+		}
+		while ($cursor < $month['end']);
+		return $weeks;
+	}
+}
