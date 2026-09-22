@@ -10,7 +10,9 @@
 	document.querySelectorAll('[data-map]').forEach(function (el) {
 		var features;
 		try { features = JSON.parse(el.getAttribute('data-features') || '[]'); } catch (e) { features = []; }
-		if (!features.length) return;
+		var center = null;
+		try { center = JSON.parse(el.getAttribute('data-center') || 'null'); } catch (e) { center = null; }
+		if (!features.length && !center) return;
 
 		var tileUrl = el.getAttribute('data-tile');
 		var attribution = el.getAttribute('data-attribution') || '';
@@ -18,6 +20,18 @@
 
 		var map = window.L.map(el, { scrollWheelZoom: false, attributionControl: true });
 		window.L.tileLayer(tileUrl, { attribution: attribution, maxZoom: 18 }).addTo(map);
+
+		// Titik perkiraan (belum terverifikasi): lingkaran radius + penanda, bukan titik presisi.
+		if (!features.length && center) {
+			var latlng = [center.lat, center.lng];
+			window.L.circle(latlng, { radius: center.radius || 1000, color: '#8A6420', weight: 2, dashArray: '6 6', fillColor: '#D7AF67', fillOpacity: 0.15 }).addTo(map);
+			var marker = window.L.circleMarker(latlng, { radius: 9, color: '#174B3A', fillColor: '#D7AF67', fillOpacity: 1, weight: 3 }).addTo(map);
+			map.setView(latlng, center.zoom || 14);
+			marker.bindPopup('<strong>' + String(center.title || 'Perkiraan lokasi') + '</strong><br><small>Titik perkiraan, belum diverifikasi lapangan.</small>').openPopup();
+			map.on('focus click', function () { map.scrollWheelZoom.enable(); });
+			map.on('blur mouseout', function () { map.scrollWheelZoom.disable(); });
+			return;
+		}
 
 		var layer = window.L.geoJSON(
 			{

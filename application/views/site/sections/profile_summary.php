@@ -3,11 +3,21 @@ $cfg = $s['config'];
 $media = $d['media'] ?? NULL;
 $image_left = ($s['layout'] ?? 'text_image.image_left') === 'text_image.image_left';
 $links = $cfg['cta'] ?? array();
+// Tanpa foto CMS: pakai foto kawasan Kec. Kertasari (bukan Desa Cihawuk) lengkap dengan kreditnya.
+$regional = $d['regional'] ?? array();
+$landscape = ( ! $media && ! empty($regional['photos'])) ? ($regional['photos'][1] ?? $regional['photos'][0]) : NULL;
 ?>
 <section class="section" aria-labelledby="profil-title">
 	<div class="container-wide profile-split<?= $image_left ? '' : ' profile-split-reverse' ?>">
 		<div class="profile-figure reveal">
+			<?php if ($landscape): ?>
+			<figure class="mb-0">
+				<div class="media-frame"><img src="<?= e(asset_url($landscape['file'])) ?>" alt="<?= e($landscape['alt']) ?>" width="<?= (int) $landscape['width'] ?>" height="<?= (int) $landscape['height'] ?>" loading="lazy" decoding="async" sizes="(min-width: 992px) 50vw, 100vw"></div>
+				<figcaption class="landscape-credit"><?= icon('camera') ?> <?= e($regional['area'] ?? 'Kawasan Kec. Kertasari') ?> · <?= e($landscape['place']) ?>. Foto: <a href="<?= e($landscape['source']) ?>" target="_blank" rel="noopener"><?= e($landscape['author']) ?></a>, <?= e($landscape['license']) ?></figcaption>
+			</figure>
+			<?php else: ?>
 			<div class="media-frame"><?= media_img($media, 'Foto lanskap desa belum tersedia', FALSE, '(min-width: 992px) 50vw, 100vw') ?></div>
+			<?php endif; ?>
 			<?php if ( ! empty($elevation)): ?>
 			<div class="profile-badge">
 				<strong>±<?= format_number_id($elevation->numeric_value) ?> mdpl</strong>

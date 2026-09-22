@@ -1,0 +1,96 @@
+/* Transparansi anggaran & kartu sorotan APBDes di Dokumen publik. Memakai token warna site.css. */
+
+.budget-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+.budget-year { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.budget-year .form-select { width: auto; min-width: 110px; }
+.budget-jump { display: flex; flex-wrap: wrap; gap: 6px; }
+.budget-jump a { padding: 6px 14px; border-radius: 999px; background: var(--color-primary-soft, #E6EFEA); color: var(--color-primary, #174B3A); font-weight: 700; font-size: .875rem; text-decoration: none; }
+.budget-jump a:hover { background: var(--color-primary, #174B3A); color: #fff; }
+
+.budget-demo { display: flex; gap: 10px; align-items: flex-start; background: #FDF6E7; border: 1px solid #EAD3A2; color: #5B4200; border-radius: 14px; padding: 12px 16px; margin-bottom: 24px; }
+.budget-demo .icon { flex: none; width: 20px; height: 20px; margin-top: 2px; }
+
+.budget-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.budget-kpi { position: relative; display: flex; flex-direction: column; gap: 2px; background: #fff; border: 1px solid var(--color-border, #DCE5DE); border-radius: 18px; padding: 18px 18px 16px; box-shadow: var(--shadow-card); }
+.budget-kpi-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--color-primary-soft, #E6EFEA); color: var(--color-primary, #174B3A); margin-bottom: 8px; }
+.budget-kpi-icon .icon { width: 20px; height: 20px; }
+.budget-kpi.is-spend .budget-kpi-icon { background: #FBF1DE; color: #8A6420; }
+.budget-kpi-label { font-size: .8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted, #596A62); }
+.budget-kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--color-ink, #182B24); line-height: 1.2; }
+.budget-kpi-exact { font-size: .8125rem; color: var(--color-muted, #596A62); font-variant-numeric: tabular-nums; }
+
+.budget-explain { background: linear-gradient(135deg, #F0F6F2 0%, #FBF6EC 100%); border: 1px solid #D5E4DA; border-radius: 18px; padding: 20px 22px; }
+.budget-explain h3 { display: flex; align-items: center; gap: 8px; color: var(--color-primary, #174B3A); }
+.budget-explain h3 .icon { width: 18px; height: 18px; }
+.budget-explain p { margin-bottom: 8px; }
+.budget-per100 { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.budget-per100 li { background: #fff; border-radius: 12px; padding: 10px 14px; border: 1px solid #DCE5DE; }
+.budget-per100-amount { font-weight: 800; color: var(--color-primary, #174B3A); }
+
+.budget-charts { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 768px) { .budget-charts { grid-template-columns: 1fr 1fr; } .budget-chart-wide { grid-column: 1 / -1; } }
+.budget-chart { margin: 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.budget-chart-box { position: relative; height: 300px; }
+.budget-chart-box.is-tall { height: 340px; }
+.budget-chart-box canvas { max-width: 100%; }
+.budget-table-toggle summary { cursor: pointer; font-weight: 700; color: var(--color-primary, #174B3A); font-size: .875rem; }
+.budget-table-toggle table { margin-top: 8px; font-size: .875rem; }
+.budget-table-toggle .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.budget-highlights { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 992px) { .budget-highlights { grid-template-columns: 1fr 1fr; } }
+.budget-highlight { border-radius: 20px; padding: 20px; background: #fff; border: 1px solid var(--color-border, #DCE5DE); border-top: 5px solid var(--color-accent, #D7AF67); box-shadow: var(--shadow-card); min-width: 0; }
+.budget-highlight:first-child { border-top-color: var(--color-primary, #174B3A); }
+.budget-highlight-head { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; margin-bottom: 12px; }
+.budget-highlight-head p { color: var(--color-muted, #596A62); }
+.budget-highlight-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--color-primary-soft, #E6EFEA); color: var(--color-primary, #174B3A); }
+.budget-highlight-total { font-weight: 800; font-size: 1.125rem; color: var(--color-primary, #174B3A); white-space: nowrap; }
+@media (max-width: 575.98px) { .budget-highlight-head { grid-template-columns: auto 1fr; } .budget-highlight-total { grid-column: 2; } }
+
+.budget-bidang-list { display: grid; gap: 14px; }
+.budget-bidang { background: #fff; border: 1px solid var(--color-border, #DCE5DE); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow-card); min-width: 0; }
+.budget-bidang-head { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start; }
+.budget-bidang-no { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--color-primary, #174B3A); color: #fff; font-weight: 800; }
+.budget-bidang-title { min-width: 0; }
+.budget-bidang-sum { text-align: right; display: flex; flex-direction: column; }
+.budget-bidang-sum strong { font-size: 1.125rem; color: var(--color-ink, #182B24); white-space: nowrap; }
+.budget-bidang-sum span { font-size: .8125rem; color: var(--color-muted, #596A62); white-space: nowrap; }
+@media (max-width: 575.98px) {
+	.budget-bidang-head { grid-template-columns: auto 1fr; }
+	.budget-bidang-sum { grid-column: 2; text-align: left; }
+}
+.budget-bar { height: 8px; border-radius: 999px; background: #EEF3EF; margin: 14px 0 4px; overflow: hidden; }
+.budget-bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #174B3A, #6FA58C); }
+.budget-bidang-detail { margin-top: 10px; }
+.budget-bidang-detail > summary { cursor: pointer; font-weight: 700; color: var(--color-primary, #174B3A); padding: 6px 0; }
+.budget-sub { margin-top: 12px; border-left: 3px solid var(--color-accent, #D7AF67); padding-left: 14px; }
+.budget-sub-head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; margin-bottom: 6px; }
+.budget-sub-head strong { white-space: nowrap; }
+
+.budget-items { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.budget-items li { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; row-gap: 4px; padding: 8px 0; border-bottom: 1px dashed #E3EAE5; font-size: .9375rem; }
+.budget-items li:last-child { border-bottom: 0; }
+.budget-item-name { min-width: 0; overflow-wrap: anywhere; }
+.budget-item-amount { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.budget-item-bar { grid-column: 1 / -1; height: 4px; border-radius: 999px; background: #F1F4F2; overflow: hidden; }
+.budget-item-bar span { display: block; height: 100%; background: var(--color-accent, #D7AF67); border-radius: 999px; }
+
+.budget-full > summary { cursor: pointer; padding: 12px 16px; background: #fff; border: 1px solid var(--color-border, #DCE5DE); border-radius: 14px; }
+.budget-full[open] > summary { border-radius: 14px 14px 0 0; }
+.budget-row-top th, .budget-row-top td { background: #F6F9F7; font-weight: 700; }
+
+/* Kartu sorotan APBDes di halaman Dokumen publik */
+.apbdes-card { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: center; padding: 24px; margin-bottom: 28px; border-radius: 22px; color: #fff;
+	background: radial-gradient(420px 220px at 100% 0%, rgba(215,175,103,.28), transparent 60%), linear-gradient(150deg, #174B3A 0%, #0E3328 100%); }
+@media (min-width: 768px) { .apbdes-card { grid-template-columns: 1.3fr 1fr; padding: 28px 32px; } }
+.apbdes-card h2 { color: #fff; font-family: var(--font-display); font-size: clamp(1.4rem, 1rem + 1.4vw, 1.9rem); margin-bottom: 6px; }
+.apbdes-card p { color: rgba(255,255,255,.85); }
+.apbdes-card .eyebrow { color: #F5D9A6; }
+.apbdes-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 18px; }
+.apbdes-stats div { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.apbdes-stats span { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: rgba(255,255,255,.7); }
+.apbdes-stats strong { display: block; font-size: 1.05rem; color: #fff; overflow-wrap: anywhere; }
+.apbdes-chart { background: #fff; border-radius: 18px; padding: 14px; }
+.apbdes-chart .budget-chart-box { height: 240px; }
+.apbdes-demo { display: inline-block; font-size: .75rem; font-weight: 700; background: #F5D9A6; color: #3E2C00; border-radius: 999px; padding: 3px 10px; margin-left: 6px; vertical-align: middle; }
+@media (max-width: 575.98px) { .apbdes-stats { grid-template-columns: 1fr; } }

@@ -30,6 +30,8 @@ $config['cms_section_types'] = array(
 			'fallback_media_id' => array('type' => 'media', 'label' => 'Foto fallback',
 				'help' => 'Wajib untuk mode video. Mode animasi memakai ilustrasi bawaan bila foto belum ada.'),
 			'video_media_id' => array('type' => 'media', 'label' => 'Video'),
+			'side_media_id' => array('type' => 'media', 'label' => 'Foto sisi kanan',
+				'help' => 'Foto desa di samping judul. Bila kosong, tampil foto kawasan Kec. Kertasari berlisensi bebas.'),
 			'cta' => array('type' => 'links', 'label' => 'Tombol', 'max_items' => 2),
 		),
 	),

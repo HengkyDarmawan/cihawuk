@@ -9,6 +9,44 @@
 
 <section class="page-body">
 	<div class="container-site">
+		<?php if ( ! empty($apbdes)):
+			$short = function ($value) {
+				$sign = (float) $value < 0 ? '−' : '';
+				$value = abs((float) $value);
+				if ($value >= 1e9) { return $sign.'Rp'.rtrim(rtrim(number_format($value / 1e9, 2, ',', '.'), '0'), ',').' miliar'; }
+				if ($value >= 1e6) { return $sign.'Rp'.rtrim(rtrim(number_format($value / 1e6, 1, ',', '.'), '0'), ',').' juta'; }
+				return $sign.'Rp'.number_format($value, 0, ',', '.');
+			};
+			$names = array_map(function ($b) {
+				foreach (array('/pemerintahan/i' => 'Pemerintahan', '/pembangunan/i' => 'Pembangunan', '/pembinaan/i' => 'Pembinaan', '/pemberdayaan/i' => 'Pemberdayaan', '/bencana|darurat|mendesak/i' => 'Bencana & mendesak') as $p => $n)
+				{
+					if (preg_match($p, $b['name'])) { return $n; }
+				}
+				return $b['name'];
+			}, $apbdes['bidang']); ?>
+		<article class="apbdes-card" aria-labelledby="apbdes-title">
+			<div>
+				<p class="eyebrow mb-1">Transparansi anggaran</p>
+				<h2 id="apbdes-title">APBDes <?= (int) $apbdes['fiscal_year'] ?> — ringkasan &amp; rincian<?= $apbdes['is_demo'] ? ' <span class="apbdes-demo">Data contoh</span>' : '' ?></h2>
+				<p class="mb-0">Lihat dari mana uang desa berasal, dipakai untuk apa, dan rincian setiap kegiatan — lengkap dengan grafik dan penjelasan sederhana.</p>
+				<div class="apbdes-stats">
+					<div><span>Pendapatan</span><strong><?= e($short($apbdes['totals']['income'])) ?></strong></div>
+					<div><span>Belanja</span><strong><?= e($short($apbdes['totals']['expenditure'])) ?></strong></div>
+					<div><span>Bidang belanja</span><strong><?= count($apbdes['bidang']) ?> bidang</strong></div>
+				</div>
+				<a class="btn btn-accent" href="<?= site_url('transparansi/anggaran') ?>">Buka rincian anggaran <?= icon('arrow-right') ?></a>
+			</div>
+			<?php if ($apbdes['bidang']): ?>
+			<figure class="apbdes-chart mb-0">
+				<div class="budget-chart-box"><canvas id="chart-dokumen-apbdes" role="img" aria-label="Grafik belanja APBDes <?= (int) $apbdes['fiscal_year'] ?> per bidang. Rinciannya ada di halaman transparansi anggaran."></canvas></div>
+				<script type="application/json" id="chart-dokumen-apbdes-data"><?= json_encode(array('type' => 'donut', 'format' => 'rupiah', 'labels' => $names,
+					'series' => array(array('label' => 'Belanja', 'data' => array_column($apbdes['bidang'], 'total')))), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
+				<figcaption class="small text-muted text-center mt-2">Belanja per bidang (<?= e($apbdes['label']) ?>)</figcaption>
+			</figure>
+			<?php endif; ?>
+		</article>
+		<?php endif; ?>
+
 		<nav class="filter-chips" aria-label="Filter dokumen">
 			<a class="chip" href="<?= site_url('dokumen') ?>" <?= $active_category === '' && ! $active_year ? 'aria-current="true"' : '' ?>>Semua</a>
 			<?php foreach ($categories as $cat): ?>

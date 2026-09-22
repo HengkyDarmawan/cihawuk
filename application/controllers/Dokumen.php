@@ -22,6 +22,9 @@ class Dokumen extends Public_Controller {
 		}
 		krsort($years);
 		$this->render('site/dokumen', array(
+			'apbdes' => $this->apbdes_card(),
+			'extra_css' => array('site/css/anggaran.css'),
+			'extra_js' => array('vendor/chartjs/chart.umd.min.js', 'site/js/charts.js'),
 			'page_title' => 'Dokumen Publik',
 			'documents' => $documents,
 			'categories' => $this->db->where('content_type', 'document')->order_by('sort_order')->get('content_categories')->result(),
@@ -29,6 +32,46 @@ class Dokumen extends Public_Controller {
 			'active_category' => $category,
 			'active_year' => $year,
 		), 'site');
+	}
+
+	/**
+	 * Ringkasan APBDes terbit terakhir untuk kartu sorotan: tiga angka utama dan belanja per
+	 * bidang (dijumlah dari daun, sehingga baris induk tidak terhitung dua kali).
+	 */
+	protected function apbdes_card()
+	{
+		$this->load->library('BudgetService', NULL, 'budgets');
+		$budget = $this->budgets->published_budget();
+		$revisions = $budget['revisions'] ?? array();
+		$base = ($revisions['amended'] ?? NULL) ?: ($revisions['original'] ?? NULL);
+		if ( ! $base)
+		{
+			return NULL;
+		}
+		$parents = array();
+		foreach ($base['lines'] as $line)
+		{
+			if ( ! empty($line['parent_id'])) { $parents[(int) $line['parent_id']] = TRUE; }
+		}
+		$by_id = array();
+		foreach ($base['lines'] as $line) { $by_id[(int) $line['category_id']] = $line; }
+		$bidang = array();
+		foreach ($base['lines'] as $line)
+		{
+			if ($line['section'] !== 'expenditure' OR isset($parents[(int) $line['category_id']])) { continue; }
+			$root = $line;
+			while ( ! empty($root['parent_id']) && isset($by_id[(int) $root['parent_id']])) { $root = $by_id[(int) $root['parent_id']]; }
+			$key = (int) $root['category_id'];
+			if ( ! isset($bidang[$key])) { $bidang[$key] = array('name' => $root['name'], 'total' => 0.0); }
+			$bidang[$key]['total'] += (float) $line['amount'];
+		}
+		return array(
+			'fiscal_year' => (int) $budget['year']['fiscal_year'],
+			'label' => $base['label'],
+			'is_demo' => stripos((string) ($budget['year']['note'] ?? ''), 'contoh') !== FALSE,
+			'totals' => $base['totals'],
+			'bidang' => array_values($bidang),
+		);
 	}
 
 	public function unduh($id)

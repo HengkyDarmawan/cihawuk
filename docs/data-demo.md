@@ -62,7 +62,7 @@ Seluruh isi berikut dibuat `tools seed_demo` dan hilang saat `tools purge_demo`.
 | Fasilitas | Sekolah, posyandu, puskesmas pembantu, masjid, lapangan, bak air, kantor desa | 12 |
 | Potensi | Kebun teh, hortikultura, kopi, sapi perah, wisata air panas | 5 |
 | UMKM | Keripik, kopi bubuk, teh rakyat, anyaman bambu, warung, bengkel, dan lainnya | 10 |
-| Anggaran | APBDes 2024, 2025 dan 2026 | 3 tahun, 7 revisi |
+| Anggaran | APBDes 2024, 2025 dan 2026; belanja tiga tingkat (bidang → subbidang → kegiatan) | 3 tahun, 7 revisi, 5 bidang, 17 subbidang, 42 kegiatan |
 | Aset | Register, unit fisik, token QR, mutasi, peminjaman, pemeliharaan, batch label | 17 register, 51 unit |
 | Gudang | Barang, konversi satuan, transaksi terposting, opname tertutup | 25 barang, 6 transaksi |
 | Konten | Berita dan agenda | 8 + 6 |
@@ -71,6 +71,32 @@ Seluruh isi berikut dibuat `tools seed_demo` dan hilang saat `tools purge_demo`.
 | Akun | Akun peran `.demo` dan skenario tiket | 18 akun, 9 tiket |
 
 **Nomor telepon, surel, nama pemilik usaha, dan angka APBDes di atas tidak nyata.**
+
+### Rincian APBDes contoh
+
+`DemoSeeder::budget_plan()` menyusun belanja sebagai bidang → subbidang → kegiatan
+(kode `BID.02` → `BID.02.01` → `BID.02.01.03`). Nama kegiatan menyebut barang/jasa dan volumenya
+supaya halaman transparansi dapat memperagakan "dibelikan apa dan berapa", misalnya:
+
+- Transportasi dan jalan desa: rabat beton jalan usaha tani (600 m × 2,5 m), pengerasan jalan
+  lingkungan Dusun II, PJU tenaga surya 12 titik, rambu jalan.
+- Bantuan desa untuk warga: BLT Dana Desa (40 KPM × Rp300.000 × 12 bulan = Rp144.000.000) dan paket
+  sembako lansia.
+- Pertanian: bibit kentang G2 untuk 5 kelompok tani (2.500 kg × Rp18.000).
+
+Kegiatan yang namanya memuat hitungan tidak diskalakan antartahun (angkanya tetap cocok dengan
+hitungannya); yang lain diskalakan 1,00 / 1,08 / 1,15 untuk 2024 / 2025 / 2026. Baris bidang dan
+subbidang selalu sama dengan jumlah anaknya. Penyertaan modal BUMDes menjadi angka penyeimbang.
+
+Untuk mengganti hanya APBDes demo (misalnya setelah rincian ini diperbarui) tanpa menghapus data
+demo lain:
+
+```
+php public/index.php tools demo_budget_refresh
+```
+
+Perintah ini menghapus tahun anggaran yang tercatat di `demo_records` saja, lalu membuat dan
+menerbitkannya ulang. Di production perintah ini hanya berjalan bila `DEMO_MODE=true`.
 
 ## Foto
 

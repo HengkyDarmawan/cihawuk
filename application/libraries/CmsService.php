@@ -871,9 +871,16 @@ class CmsService {
 				return array(
 					'fallback' => empty($config['fallback_media_id']) ? NULL : $this->CI->content->media((int) $config['fallback_media_id']),
 					'video' => empty($config['video_media_id']) ? NULL : $this->CI->content->media((int) $config['video_media_id']),
+					'side' => empty($config['side_media_id']) ? NULL : $this->CI->content->media((int) $config['side_media_id']),
+					'regional' => $this->regional_photos(),
 				);
 
 			case 'profile_summary':
+				return array(
+					'media' => empty($config['media_id']) ? NULL : $this->CI->content->media((int) $config['media_id']),
+					'regional' => $this->regional_photos(),
+				);
+
 			case 'text_image':
 				return array('media' => empty($config['media_id']) ? NULL : $this->CI->content->media((int) $config['media_id']));
 
@@ -957,10 +964,23 @@ class CmsService {
 				return array('items' => array_slice($documents, 0, (int) ($config['limit'] ?? 4)));
 
 			case 'verified_map':
-				return array('features' => $this->CI->content->map_features(array((string) ($config['feature_types'] ?? 'office'))));
+				return array(
+					'features' => $this->CI->content->map_features(array((string) ($config['feature_types'] ?? 'office'))),
+					'center' => $this->CI->config->item('village_center', 'app'),
+				);
 
 			default:
 				return array();
 		}
+	}
+
+	/** Foto kawasan Kec. Kertasari (bukan foto desa) sebagai ilustrasi sampai foto asli diunggah. */
+	protected function regional_photos()
+	{
+		$this->CI->config->load('regional_photos', TRUE);
+		return array(
+			'area' => (string) $this->CI->config->item('regional_photos_area', 'regional_photos'),
+			'photos' => (array) $this->CI->config->item('regional_photos', 'regional_photos'),
+		);
 	}
 }

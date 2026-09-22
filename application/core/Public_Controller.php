@@ -123,7 +123,7 @@ class Public_Controller extends MY_Controller {
 				$css['vendor/swiper/swiper-bundle.min.css'] = TRUE;
 				$js['vendor/swiper/swiper-bundle.min.js'] = TRUE;
 			}
-			if ($type === 'verified_map' && ! empty($section['data']['features']))
+			if ($type === 'verified_map' && ( ! empty($section['data']['features']) OR (app_env('MAP_TILE_URL') && ! empty($section['data']['center']))))
 			{
 				$css['vendor/leaflet/leaflet.css'] = TRUE;
 				$js['vendor/leaflet/leaflet.js'] = TRUE;

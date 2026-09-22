@@ -22,6 +22,19 @@ $config['features'] = array(
 	'demo_mode' => app_env_bool('DEMO_MODE', FALSE),
 );
 
+// Titik pusat perkiraan desa untuk peta publik selama belum ada titik terverifikasi.
+// Sumber: Dokumen Profil Desa 2023 mencatat "7,1999 / 107,7050" tanpa tanda lintang
+// (docs/data-issues.md LATITUDE_SIGN); lintang selatan satu-satunya yang jatuh di Jawa Barat.
+// Selalu ditampilkan dengan label "perkiraan". Timpa lewat VILLAGE_LAT / VILLAGE_LNG.
+$config['village_center'] = array(
+	'lat' => (float) app_env('VILLAGE_LAT', '-7.1999'),
+	'lng' => (float) app_env('VILLAGE_LNG', '107.7050'),
+	'zoom' => 14,
+	'radius_m' => 1000,
+	'approximate' => TRUE,
+	'source' => 'Dokumen Profil Desa 2023',
+);
+
 // Batas sesi (menit)
 $config['session_limits'] = array(
 	'admin' => array('idle' => app_env_int('SESSION_ADMIN_IDLE', 30), 'absolute' => app_env_int('SESSION_ADMIN_ABSOLUTE', 480)),

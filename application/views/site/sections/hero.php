@@ -7,6 +7,16 @@ $video = $d['video'] ?? NULL;
 $use_three = ($mode === 'three') && ! empty($three_enabled) && ! $video;
 $cta = $cfg['cta'] ?? array();
 $editorial = ($s['layout'] ?? '') === 'hero.editorial';
+// Kolom kanan: foto pilihan CMS bila ada; selain itu foto kawasan Kec. Kertasari (berlisensi,
+// dengan kredit). Foto kawasan tidak pernah diberi label "Desa Cihawuk".
+$side = $d['side'] ?? NULL;
+$regional = $d['regional'] ?? array();
+$region_photos = array_slice($regional['photos'] ?? array(), 0, 3);
+$region_area = $regional['area'] ?? 'Kawasan Kec. Kertasari';
+$region_img = function (array $p, $eager, $sizes) {
+	return '<img src="'.e(asset_url($p['file'])).'" alt="'.e($p['alt']).'" width="'.(int) $p['width'].'" height="'.(int) $p['height'].'"'
+		.($eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"').' sizes="'.e($sizes).'">';
+};
 ?>
 <section class="hero<?= $editorial ? ' hero-editorial' : '' ?>" aria-labelledby="hero-title">
 	<div class="hero-media" aria-hidden="<?= $fallback ? 'false' : 'true' ?>">
@@ -34,16 +44,41 @@ $editorial = ($s['layout'] ?? '') === 'hero.editorial';
 	<?php endif; ?>
 	<div class="hero-overlay" aria-hidden="true"></div>
 
-	<div class="container-wide hero-content">
-		<p class="hero-kicker"><?= icon('map-pin') ?> Jawa Barat · Dataran tinggi Kertasari</p>
-		<h1 class="hero-title" id="hero-title"><?= e($s['title'] ?: 'Selamat Datang di Desa Cihawuk') ?></h1>
-		<?php if ($s['subtitle']): ?><p class="hero-subtitle"><?= e($s['subtitle']) ?></p><?php endif; ?>
-		<?php if ($cta): ?>
-		<div class="hero-actions">
-			<?php foreach ($cta as $i => $link): ?>
-				<a class="btn btn-lg <?= $i === 0 ? 'btn-accent' : 'btn-light-glass' ?>" href="<?= nav_href($link['url']) ?>"><?= e($link['label']) ?><?= $i === 0 ? ' '.icon('arrow-right') : '' ?></a>
-			<?php endforeach; ?>
+	<div class="container-wide hero-content<?= ($side || $region_photos) ? ' has-visual' : '' ?>">
+		<div class="hero-text">
+			<p class="hero-kicker"><?= icon('map-pin') ?> Jawa Barat · Dataran tinggi Kertasari</p>
+			<h1 class="hero-title" id="hero-title"><?= e($s['title'] ?: 'Selamat Datang di Desa Cihawuk') ?></h1>
+			<?php if ($s['subtitle']): ?><p class="hero-subtitle"><?= e($s['subtitle']) ?></p><?php endif; ?>
+			<?php if ($cta): ?>
+			<div class="hero-actions">
+				<?php foreach ($cta as $i => $link): ?>
+					<a class="btn btn-lg <?= $i === 0 ? 'btn-accent' : 'btn-light-glass' ?>" href="<?= nav_href($link['url']) ?>"><?= e($link['label']) ?><?= $i === 0 ? ' '.icon('arrow-right') : '' ?></a>
+				<?php endforeach; ?>
+			</div>
+			<?php endif; ?>
 		</div>
+
+		<?php if ($side): ?>
+		<figure class="hero-visual hero-visual-single">
+			<div class="hero-photo hero-photo-main"><?= media_img($side, '', TRUE, '(min-width: 992px) 45vw, 100vw') ?></div>
+			<?php if ($side->caption OR $side->source_credit): ?>
+			<figcaption class="hero-photo-caption">
+				<?php if ($side->caption): ?><span class="hero-photo-place"><?= icon('camera') ?> <?= e($side->caption) ?></span><?php endif; ?>
+				<?php if ($side->source_credit): ?><span class="hero-photo-credit">Foto: <?= e($side->source_credit) ?></span><?php endif; ?>
+			</figcaption>
+			<?php endif; ?>
+		</figure>
+		<?php elseif ($region_photos): $main = $region_photos[0]; ?>
+		<figure class="hero-visual">
+			<div class="hero-photo hero-photo-main"><?= $region_img($main, TRUE, '(min-width: 992px) 42vw, 100vw') ?></div>
+			<?php foreach (array_slice($region_photos, 1, 2) as $k => $photo): ?>
+				<div class="hero-photo hero-photo-small hero-photo-small-<?= $k + 1 ?>"><?= $region_img($photo, FALSE, '220px') ?></div>
+			<?php endforeach; ?>
+			<figcaption class="hero-photo-caption">
+				<span class="hero-photo-place"><?= icon('camera') ?> <?= e($region_area) ?> · <?= e($main['place']) ?></span>
+				<span class="hero-photo-credit">Foto: <a href="<?= e($main['source']) ?>" target="_blank" rel="noopener"><?= e($main['author']) ?></a>, <?= e($main['license']) ?> via Wikimedia Commons</span>
+			</figcaption>
+		</figure>
 		<?php endif; ?>
 	</div>
 	<?php if ($fallback && $fallback->source_credit): ?>

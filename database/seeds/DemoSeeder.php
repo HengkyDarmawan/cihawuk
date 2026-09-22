@@ -830,11 +830,26 @@ class DemoSeeder extends Seeder {
 	 * benar-benar nol dan induk selalu sama dengan jumlah anaknya. Dengan begitu data contoh
 	 * lolos rekonsiliasi karena memang seimbang, bukan karena pemeriksaannya dilewati.
 	 */
+	/**
+	 * Rencana APBDes contoh tiga tingkat: bidang -> subbidang -> kegiatan.
+	 *
+	 * Nama kegiatan sengaja menyebut barang/jasa dan volumenya supaya halaman publik bisa
+	 * memperagakan rincian "dibelikan apa dan berapa". Semua angka adalah contoh, bukan
+	 * APBDes resmi Desa Cihawuk. Nilai kegiatan dalam juta rupiah: satu angka (sama untuk
+	 * semua revisi) atau array(murni, perubahan, realisasi); elemen ketiga TRUE = tidak diskalakan.
+	 */
 	protected function budget_plan($scale, $type)
 	{
 		$amended = in_array($type, array('amended', 'realization'), TRUE);
 		$realization = ($type === 'realization');
 		$r = function ($n) use ($scale) { return round($n * $scale / 1000000) * 1000000; };
+		$pick = function ($v) use ($amended, $realization, $r) {
+			if ( ! is_array($v))
+			{
+				return $r($v * 1000000);
+			}
+			return $r(($realization ? $v[2] : ($amended ? $v[1] : $v[0])) * 1000000);
+		};
 
 		$income = array(
 			array('Dana Desa', 'PEN.01', $r(1100000000)),
@@ -844,44 +859,120 @@ class DemoSeeder extends Seeder {
 			array('Pendapatan asli desa', 'PEN.05', $r(55000000)),
 		);
 
-		$expenditure = array(
+		$tree = array(
 			array('Penyelenggaraan Pemerintahan Desa', 'BID.01', array(
-				array('Penghasilan tetap dan tunjangan', 'BID.01.01', $r(380000000)),
-				array('Operasional pemerintah desa', 'BID.01.02', $r($realization ? 110000000 : 120000000)),
-				array('Operasional BPD', 'BID.01.03', $r(45000000)),
-				array('Tunjangan dan operasional RT dan RW', 'BID.01.04', $r(75000000)),
+				array('Penghasilan tetap dan tunjangan', array(
+					array('Penghasilan tetap kepala desa dan perangkat desa (14 orang × 12 bulan)', 300),
+					array('Tunjangan kepala desa dan perangkat desa (14 orang × 12 bulan)', 80),
+				)),
+				array('Operasional pemerintah desa', array(
+					array('Alat tulis kantor dan bahan cetak pelayanan (12 bulan)', array(28, 28, 25)),
+					array('Listrik, air, dan internet kantor desa (12 bulan)', array(34, 34, 32)),
+					array('Laptop 2 unit dan printer 1 unit untuk pelayanan administrasi', 30),
+					array('Rapat koordinasi dan perjalanan dinas', array(23, 23, 18)),
+				)),
+				array('Operasional BPD', array(
+					array('Tunjangan anggota BPD (7 orang × 12 bulan)', 35),
+					array('Rapat dan musyawarah BPD', 10),
+				)),
+				array('Operasional RT dan RW', array(
+					array('Insentif ketua RT dan RW (50 orang × Rp100.000 × 12 bulan)', 60, TRUE),
+					array('Operasional lembaga RT dan RW', 15),
+				)),
 			)),
 			array('Pelaksanaan Pembangunan Desa', 'BID.02', array(
-				array('Perbaikan jalan lingkungan', 'BID.02.01', $r($realization ? 380000000 : ($amended ? 420000000 : 350000000))),
-				array('Sarana air bersih', 'BID.02.02', $r($realization ? 245000000 : ($amended ? 240000000 : 210000000))),
-				array('Rehabilitasi gedung posyandu', 'BID.02.03', $r(120000000)),
-				array('Drainase dan talud', 'BID.02.04', $r($realization ? 170000000 : 200000000)),
+				array('Transportasi dan jalan desa', array(
+					array('Rabat beton jalan usaha tani ke kebun kentang (600 m × 2,5 m)', array(130, 160, 150)),
+					array('Pengerasan jalan lingkungan Dusun II (450 m × 3 m)', array(110, 130, 125)),
+					array('Penerangan jalan umum tenaga surya (12 titik)', array(40, 55, 50)),
+					array('Rambu jalan dan cermin tikungan (20 unit)', array(15, 20, 18)),
+				)),
+				array('Air bersih', array(
+					array('Pipa HDPE dari mata air ke permukiman (2 km)', array(100, 115, 120)),
+					array('Bak penampung air beton (2 unit × 10 m³)', array(50, 55, 55)),
+					array('Sambungan rumah dan meteran air (40 rumah)', array(20, 25, 25)),
+				)),
+				array('Sarana kesehatan', array(
+					array('Rehabilitasi atap dan lantai gedung posyandu', 70),
+					array('Meja, kursi, dan timbangan digital posyandu (1 paket)', 20),
+				)),
+				array('Drainase dan talud', array(
+					array('Talud penahan tebing (120 m × tinggi 1,5 m)', array(90, 90, 80)),
+					array('Saluran drainase lingkungan (250 m)', array(40, 40, 35)),
+				)),
 			)),
 			array('Pembinaan Kemasyarakatan', 'BID.03', array(
-				array('Pembinaan keamanan dan ketertiban', 'BID.03.01', $r(55000000)),
-				array('Pembinaan kepemudaan dan olahraga', 'BID.03.02', $r(60000000)),
-				array('Pembinaan lembaga adat dan keagamaan', 'BID.03.03', $r(40000000)),
+				array('Keamanan dan ketertiban', array(
+					array('Honor linmas (15 orang × Rp150.000 × 12 bulan)', 27, TRUE),
+					array('Seragam dan senter linmas (15 paket)', 8),
+					array('Operasional pos ronda (8 pos)', 5),
+				)),
+				array('Kepemudaan dan olahraga', array(
+					array('Turnamen sepak bola antarkampung', 15),
+					array('Peralatan olahraga karang taruna (bola, net, kostum)', 12),
+					array('Peringatan HUT RI tingkat desa', 13),
+				)),
+				array('Lembaga adat dan keagamaan', array(
+					array('Insentif guru ngaji (20 orang × Rp100.000 × 12 bulan)', 24, TRUE),
+					array('Peringatan hari besar keagamaan', 6),
+				)),
 			)),
 			array('Pemberdayaan Masyarakat', 'BID.04', array(
-				array('Pelatihan kelompok tani', 'BID.04.01', $r(95000000)),
-				array('Pelatihan UMKM dan pemasaran', 'BID.04.02', $r(80000000)),
-				array('Peningkatan kapasitas aparatur desa', 'BID.04.03', $r(60000000)),
-				array('Dukungan Posyandu dan kesehatan', 'BID.04.04', $r(60000000)),
+				array('Pertanian dan kelompok tani', array(
+					array('Bibit kentang G2 untuk 5 kelompok tani (2.500 kg × Rp18.000)', 45, TRUE),
+					array('Pelatihan pupuk organik dan pengendalian hama (60 petani)', 15),
+					array('Alat semprot dan pencacah kompos (5 paket untuk 5 kelompok tani)', 20),
+				)),
+				array('UMKM dan pemasaran', array(
+					array('Pelatihan kemasan dan pemasaran daring (40 pelaku UMKM)', 20),
+					array('Alat produksi olahan kopi dan keripik kentang (6 unit)', 30),
+				)),
+				array('Peningkatan kapasitas aparatur', array(
+					array('Pelatihan administrasi dan keuangan desa (14 perangkat)', 20),
+					array('Bimbingan teknis aplikasi layanan desa', 10),
+				)),
+				array('Posyandu dan gizi', array(
+					array('Makanan tambahan balita dan ibu hamil (100 orang × 12 bulan)', 30),
+					array('Insentif kader posyandu (20 kader × Rp100.000 × 12 bulan)', 24, TRUE),
+				)),
 			)),
 			array('Penanggulangan Bencana, Keadaan Darurat dan Mendesak', 'BID.05', array(
-				array('Tanggap darurat bencana', 'BID.05.01', $r($realization ? 85000000 : 60000000)),
-				// Realisasi di bawah pagu tidak perlu penjelasan; hanya kelebihan yang wajib.
-				array('Bantuan keadaan mendesak', 'BID.05.02', $r(40000000)),
+				array('Tanggap darurat bencana', array(
+					array('Logistik dan tenda darurat bencana longsor', array(20, 20, 35)),
+					array('Perbaikan darurat rumah warga terdampak (4 rumah)', array(20, 20, 25)),
+				)),
+				array('Bantuan desa untuk warga', array(
+					array('BLT Dana Desa (40 KPM × Rp300.000 × 12 bulan)', 144, TRUE),
+					array('Paket sembako lansia dan warga rentan (40 paket × 4 kali)', 16),
+				)),
 			)),
 		);
 
+		// Kode mengikuti posisi: BID.02 -> BID.02.01 (subbidang) -> BID.02.01.03 (kegiatan).
+		$expenditure = array();
+		$expenditure_total = 0;
+		foreach ($tree as $bidang)
+		{
+			$subs = array();
+			foreach ($bidang[2] as $s => $sub)
+			{
+				$sub_code = sprintf('%s.%02d', $bidang[1], $s + 1);
+				$leaves = array();
+				foreach ($sub[1] as $k => $leaf)
+				{
+					// Kegiatan yang namanya memuat hitungan (volume × harga) tidak ikut diskalakan
+					// per tahun, supaya angkanya tetap cocok dengan hitungan di namanya.
+					$amount = empty($leaf[2]) ? $pick($leaf[1]) : (int) $leaf[1] * 1000000;
+					$leaves[] = array($leaf[0], sprintf('%s.%02d', $sub_code, $k + 1), $amount);
+					$expenditure_total += $amount;
+				}
+				$subs[] = array($sub[0], $sub_code, $leaves);
+			}
+			$expenditure[] = array($bidang[0], $bidang[1], $subs);
+		}
+
 		$income_total = 0;
 		foreach ($income as $row) { $income_total += $row[2]; }
-		$expenditure_total = 0;
-		foreach ($expenditure as $bidang)
-		{
-			foreach ($bidang[2] as $child) { $expenditure_total += $child[2]; }
-		}
 		$financing_in = $r(70000000);
 		// Pembiayaan keluar menutup selisihnya; inilah yang membuat identitas benar-benar nol.
 		$financing_out = $financing_in + $income_total - $expenditure_total;
@@ -901,6 +992,23 @@ class DemoSeeder extends Seeder {
 			'financing_in' => $financing_in,
 			'financing_out' => $financing_out,
 		);
+	}
+
+	/** Nilai per kode untuk satu bidang: bidang, subbidang, dan kegiatan (induk = jumlah anak). */
+	protected function budget_rollup(array $bidang)
+	{
+		$out = array($bidang[1] => 0);
+		foreach ($bidang[2] as $sub)
+		{
+			$out[$sub[1]] = 0;
+			foreach ($sub[2] as $leaf)
+			{
+				$out[$leaf[1]] = $leaf[2];
+				$out[$sub[1]] += $leaf[2];
+				$out[$bidang[1]] += $leaf[2];
+			}
+		}
+		return $out;
 	}
 
 	protected function budget()
@@ -953,12 +1061,19 @@ class DemoSeeder extends Seeder {
 				$order += 10;
 				$parent = $svc->save_category($year, array('name' => $bidang[0], 'section' => 'expenditure', 'code' => $bidang[1], 'sort_order' => $order), $manager);
 				$cats['expenditure:'.$bidang[1]] = $parent;
-				foreach ($bidang[2] as $child)
+				foreach ($bidang[2] as $sub)
 				{
 					$order += 1;
-					$c = $svc->save_category($year, array('name' => $child[0], 'section' => 'expenditure', 'code' => $child[1],
+					$sub_cat = $svc->save_category($year, array('name' => $sub[0], 'section' => 'expenditure', 'code' => $sub[1],
 						'parent_id' => (int) $parent->id, 'sort_order' => $order), $manager);
-					$cats['expenditure:'.$child[1]] = $c;
+					$cats['expenditure:'.$sub[1]] = $sub_cat;
+					foreach ($sub[2] as $leaf)
+					{
+						$order += 1;
+						$c = $svc->save_category($year, array('name' => $leaf[0], 'section' => 'expenditure', 'code' => $leaf[1],
+							'parent_id' => (int) $sub_cat->id, 'sort_order' => $order), $manager);
+						$cats['expenditure:'.$leaf[1]] = $c;
+					}
 				}
 			}
 			$fin_in = $svc->save_category($year, array('name' => 'Sisa lebih perhitungan anggaran tahun sebelumnya', 'section' => 'financing_in', 'code' => 'BIA.01', 'sort_order' => 900), $manager);
@@ -972,9 +1087,7 @@ class DemoSeeder extends Seeder {
 				foreach ($base_plan['income'] as $row) { $baseline[$row[1]] = $row[2]; }
 				foreach ($base_plan['expenditure'] as $bidang)
 				{
-					$sum = 0;
-					foreach ($bidang[2] as $child) { $baseline[$child[1]] = $child[2]; $sum += $child[2]; }
-					$baseline[$bidang[1]] = $sum;
+					foreach ($this->budget_rollup($bidang) as $code => $amount) { $baseline[$code] = $amount; }
 				}
 				$baseline['BIA.01'] = $base_plan['financing_in'];
 				$baseline['BIA.02'] = $base_plan['financing_out'];
@@ -1002,18 +1115,14 @@ class DemoSeeder extends Seeder {
 				}
 				foreach ($plan['expenditure'] as $bidang)
 				{
-					$sum = 0;
-					foreach ($bidang[2] as $child) { $sum += $child[2]; }
-					// Baris induk sengaja sama persis dengan jumlah anaknya; total tetap
-					// dihitung dari baris daun saja sehingga tidak terhitung dua kali.
-					$svc->save_line($year, $revision, array('category_public_id' => $cats['expenditure:'.$bidang[1]]->public_id,
-						'amount' => $sum, 'variance_note' => $is_real ? $note_for($bidang[1], $sum) : ''), $manager);
-					foreach ($bidang[2] as $child)
+					// Baris induk (bidang dan subbidang) sengaja sama persis dengan jumlah anaknya;
+					// total tetap dihitung dari baris kegiatan saja sehingga tidak terhitung dua kali.
+					foreach ($this->budget_rollup($bidang) as $code => $amount)
 					{
 						$svc->save_line($year, $revision, array(
-							'category_public_id' => $cats['expenditure:'.$child[1]]->public_id,
-							'amount' => $child[2],
-							'variance_note' => $is_real ? $note_for($child[1], $child[2]) : '',
+							'category_public_id' => $cats['expenditure:'.$code]->public_id,
+							'amount' => $amount,
+							'variance_note' => $is_real ? $note_for($code, $amount) : '',
 						), $manager);
 					}
 				}
@@ -1868,6 +1977,52 @@ class DemoSeeder extends Seeder {
 		// 4. Linimasa kepemimpinan kembali ke keadaan belum terbit.
 		$this->CI->db->where('publication_status', 'published')
 			->update('leadership_terms', array('publication_status' => 'draft', 'updated_at' => $now));
+	}
+
+	/**
+	 * Ganti hanya APBDes demo dengan versi terbaru `budget_plan()`.
+	 *
+	 * Yang dihapus hanya tahun anggaran yang tercatat di `demo_records`; tahun anggaran
+	 * nyata tidak pernah tersentuh. Aman dijalankan berulang dan saat anggaran demo belum ada.
+	 */
+	public function refresh_budget()
+	{
+		$this->CI->load->library('AuthService', NULL, 'auth');
+		$this->CI->load->model('User_model', 'user_model');
+		$this->out('Perbarui APBDes demo…');
+
+		$ids = $this->tracked('budget_year');
+		$this->CI->db->trans_begin();
+		if ( ! empty($ids))
+		{
+			// Sama dengan purge_tracked(): putus rujukan induk kategori dulu (RESTRICT),
+			// lalu CASCADE dari budget_years membersihkan revisi, kategori, angka, dan snapshot.
+			$this->CI->db->where_in('budget_year_id', $ids)->update('budget_categories', array('parent_id' => NULL));
+			$this->CI->db->where_in('id', $ids)->delete('budget_years');
+			$this->CI->db->where('entity_type', 'budget_year')->delete('demo_records');
+		}
+		if ($this->CI->db->trans_status() === FALSE)
+		{
+			$err = $this->CI->db->error();
+			$this->CI->db->trans_rollback();
+			throw new RuntimeException('Gagal menghapus APBDes demo lama: '.($err['message'] ?: 'penyebab tidak dilaporkan driver').'.');
+		}
+		$this->CI->db->trans_commit();
+		$this->out('  '.count($ids).' tahun anggaran demo lama dihapus.');
+
+		// Akun demo pelaku alur kerja; dibuat ulang hanya bila belum ada.
+		$this->accounts();
+		$this->budget();
+
+		$this->CI->load->library('PublicCache', NULL, 'public_cache');
+		$this->CI->public_cache->flush();
+		$current = $this->tracked('budget_year') ?: array(0);
+		$published = $this->CI->db->select('fiscal_year, status')->where_in('id', $current)
+			->order_by('fiscal_year')->get('budget_years')->result();
+		foreach ($published as $row)
+		{
+			$this->out('  APBDes '.$row->fiscal_year.': '.$row->status);
+		}
 	}
 
 	public function purge()

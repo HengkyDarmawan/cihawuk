@@ -9,6 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   php public/index.php tools migrate [versi]
  *   php public/index.php tools seed
  *   php public/index.php tools seed_demo
+ *   php public/index.php tools demo_budget_refresh
  *   php public/index.php tools create_admin
  *   php public/index.php tools run_jobs [nama_job]
  *   php public/index.php tools import_sources [S1|S2|S3|S4]
@@ -17,7 +18,7 @@ class Tools extends Cli_Controller {
 
 	public function index()
 	{
-		$this->line('Perintah: health, generate_keys, migrate, seed, seed_demo, create_admin, run_jobs, import_sources, import_assets, import_media, purge_demo');
+		$this->line('Perintah: health, generate_keys, migrate, seed, seed_demo, create_admin, run_jobs, import_sources, import_assets, import_media, purge_demo, demo_budget_refresh');
 	}
 
 	/** Dipakai bootstrap pengujian untuk memuat instance CI tanpa efek samping. */
@@ -363,6 +364,23 @@ class Tools extends Cli_Controller {
 		}
 		fclose($handle);
 		$this->line('Selesai: '.$imported.' diimpor, '.$skipped.' dilewati (sudah ada), '.$failed.' gagal.');
+	}
+
+	/**
+	 * Ganti hanya APBDes demo dengan rincian contoh terbaru (bidang → subbidang → kegiatan).
+	 * Di production hanya boleh bila DEMO_MODE=true, karena situs demo memang memakainya.
+	 */
+	public function demo_budget_refresh()
+	{
+		$features = (array) $this->config->item('features', 'app');
+		if (ENVIRONMENT === 'production' && empty($features['demo_mode']))
+		{
+			$this->error('Tidak tersedia pada production kecuali DEMO_MODE=true.');
+			exit(EXIT_ERROR);
+		}
+		require_once ROOTPATH.'database/seeds/DemoSeeder.php';
+		$seeder = new DemoSeeder($this);
+		$seeder->refresh_budget();
 	}
 
 	/** Hapus data demo (development/testing). */	public function purge_demo()

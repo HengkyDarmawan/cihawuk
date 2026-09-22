@@ -57,14 +57,7 @@ $confirmed = is_array($contact) && ! empty($contact['confirmed']);
 						<div data-map data-features="<?= e(json_encode(array_map(function ($f) { return array('title' => $f->title, 'geometry' => json_decode($f->geometry_json, TRUE)); }, $office))) ?>"
 							data-tile="<?= e(app_env('MAP_TILE_URL')) ?>" data-attribution="<?= e(app_env('MAP_ATTRIBUTION')) ?>" style="height:100%;min-height:420px"></div>
 					<?php else: ?>
-					<div class="map-fallback">
-						<div>
-							<?= icon('map') ?>
-							<h2 class="h5">Peta sedang dilengkapi</h2>
-							<p class="mb-1">Desa Cihawuk, Kecamatan Kertasari, Kabupaten Bandung.</p>
-							<p class="small mb-0">Titik kantor desa ditampilkan setelah koordinatnya dikonfirmasi. Koordinat pada dokumen sumber masih memerlukan pemeriksaan tanda lintang.</p>
-						</div>
-					</div>
+						<?php $this->load->view('partials/approx_map', array('center' => $center ?? NULL, 'min_height' => 420)); ?>
 					<?php endif; ?>
 				</div>
 			</div>
